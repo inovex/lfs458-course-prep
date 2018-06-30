@@ -40,4 +40,7 @@ module "node0" {
   virtual_network_name   = "${var.virtual_network_name}"
 }
 
-# TODO write public ips in extra file
+resource "local_file" "public_ips" {
+  content  = "master: ${module.master.public_ip}\nnode: ${module.node0.public_ip}\n"
+  filename = "${path.cwd}/ips/${var.student}"
+}
