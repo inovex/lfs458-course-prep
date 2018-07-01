@@ -1,0 +1,3 @@
+trainer = "myself"
+resource_group = "lfs458"
+location = "West Europe"

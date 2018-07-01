@@ -4,7 +4,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "resource_group" {
   name     = "${var.resource_group}"
-  location = "West Europe"
+  location = "${var.location}"
 
   tags {
     environment = "LFS458"
@@ -29,11 +29,13 @@ resource "azurerm_subnet" "subnet" {
   address_prefix       = "${var.cidr}"
 }
 
-# TODO can we iterate over lists? --> jinja or something else should be very easy?
-module "student" {
+{% for student in students %}
+module "{{ student }}" {
   source                 = "modules/student_workspace"
-  student                = "student"
+  student                = "{{ student }}"
   azurerm_resource_group = "${azurerm_resource_group.resource_group.name}"
   azurerm_subnet         = "${azurerm_subnet.subnet.name}"
   virtual_network_name   = "${azurerm_virtual_network.vnet.name}"
 }
+
+{% endfor %}
