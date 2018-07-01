@@ -36,6 +36,7 @@ module "{{ student }}" {
   azurerm_resource_group = "${azurerm_resource_group.resource_group.name}"
   azurerm_subnet         = "${azurerm_subnet.subnet.name}"
   virtual_network_name   = "${azurerm_virtual_network.vnet.name}"
+  instance_type          = "${var.instance_type}"
 }
 
 {% endfor %}

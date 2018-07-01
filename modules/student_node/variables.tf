@@ -21,3 +21,7 @@ variable virtual_network_name {
 variable public_ssh_key {
   type = "string"
 }
+
+variable instance_type {
+  type = "string"
+}

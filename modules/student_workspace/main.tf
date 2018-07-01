@@ -28,6 +28,7 @@ module "master" {
   azurerm_resource_group = "${var.azurerm_resource_group}"
   azurerm_subnet         = "${var.azurerm_subnet}"
   virtual_network_name   = "${var.virtual_network_name}"
+  instance_type          = "${var.instance_type}"
 }
 
 module "node0" {
@@ -38,6 +39,7 @@ module "node0" {
   azurerm_resource_group = "${var.azurerm_resource_group}"
   azurerm_subnet         = "${var.azurerm_subnet}"
   virtual_network_name   = "${var.virtual_network_name}"
+  instance_type          = "${var.instance_type}"
 }
 
 resource "local_file" "public_ips" {
