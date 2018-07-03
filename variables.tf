@@ -18,3 +18,8 @@ variable location {
 variable instance_type {
   type = "string"
 }
+
+variable students {
+  type    = "list"
+  default = []
+}

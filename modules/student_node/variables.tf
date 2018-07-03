@@ -1,5 +1,5 @@
-variable student {
-  type = "string"
+variable students {
+  type = "list"
 }
 
 variable name {
@@ -18,8 +18,8 @@ variable virtual_network_name {
   type = "string"
 }
 
-variable public_ssh_key {
-  type = "string"
+variable public_ssh_keys {
+  type = "list"
 }
 
 variable instance_type {

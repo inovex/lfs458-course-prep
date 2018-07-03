@@ -5,5 +5,3 @@ terraform.tfstate.backup
 .terraform.tfstate.lock.info
 .terraform
 ips
-students.yml
-main.tf

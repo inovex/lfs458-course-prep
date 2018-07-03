@@ -1,5 +1,5 @@
-variable student {
-  type = "string"
+variable students {
+  type = "list"
 }
 
 variable azurerm_resource_group {

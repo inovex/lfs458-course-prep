@@ -9,40 +9,44 @@ data "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_network_interface" "nic" {
-  name                = "${var.student}_${var.name}_nic"
+  count     = "${length(var.students)}"
+  name                = "${element(var.students, count.index)}_${var.name}_nic"
   location            = "${data.azurerm_resource_group.resource_group.location}"
   resource_group_name = "${data.azurerm_resource_group.resource_group.name}"
 
   ip_configuration {
-    name                          = "${var.student}_${var.name}_nic_config"
+    name                          = "${element(var.students, count.index)}_${var.name}_nic_config"
     subnet_id                     = "${data.azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.pub_ip.id}"
+    public_ip_address_id          = "${element(azurerm_public_ip.pub_ip.*.id, count.index)}"
+    # "${azurerm_public_ip.pub_ip.*.id[count.index]}"
   }
 
   tags {
     environment = "LFS458"
-    student     = "${var.student}"
+    student     = "${element(var.students, count.index)}"
   }
 }
 
 resource "azurerm_public_ip" "pub_ip" {
-  name                         = "${var.student}_${var.name}_pub_ip"
+  count     = "${length(var.students)}"
+  name                         = "${element(var.students, count.index)}_${var.name}_pub_ip"
   location                     = "${data.azurerm_resource_group.resource_group.location}"
   resource_group_name          = "${data.azurerm_resource_group.resource_group.name}"
   public_ip_address_allocation = "static"
 
   tags {
     environment = "LFS458"
-    student     = "${var.student}"
+    student     = "${element(var.students, count.index)}"
   }
 }
 
 resource "azurerm_virtual_machine" "node" {
-  name                             = "${var.student}-${var.name}"
+  count     = "${length(var.students)}"
+  name                             = "${element(var.students, count.index)}-${var.name}"
   location                         = "${data.azurerm_resource_group.resource_group.location}"
   resource_group_name              = "${data.azurerm_resource_group.resource_group.name}"
-  network_interface_ids            = ["${azurerm_network_interface.nic.id}"]
+  network_interface_ids            = ["${element(azurerm_network_interface.nic.*.id, count.index)}"]
   vm_size                          = "${var.instance_type}"
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -56,14 +60,14 @@ resource "azurerm_virtual_machine" "node" {
 
   #Standard_B2ms
   storage_os_disk {
-    name              = "${var.student}${var.name}osdisk"
+    name              = "${element(var.students, count.index)}${var.name}osdisk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "${var.student}-${var.name}"
+    computer_name  = "${element(var.students, count.index)}-${var.name}"
     admin_username = "ubuntu"
   }
 
@@ -72,12 +76,12 @@ resource "azurerm_virtual_machine" "node" {
 
     ssh_keys {
       path     = "/home/ubuntu/.ssh/authorized_keys"
-      key_data = "${var.public_ssh_key}"
+      key_data = "${element(var.public_ssh_keys, count.index)}"
     }
   }
 
   tags {
     environment = "LFS458"
-    student     = "${var.student}"
+    student     = "${element(var.students, count.index)}"
   }
 }

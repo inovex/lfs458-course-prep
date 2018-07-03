@@ -11,30 +11,17 @@ This terraform script will create the following resources:
 ## Prerequisite
 
 - terraform (`v0.11.7`)
-- Python (`3.6.5`)
 - Azure subscription
 
 ## Preparation
 
-In order to generate the `main.tf`, which will be used as input for terraform, you need to copy the `students.yml.example` file to `students.yml`:
-
-```bash
-cp students.yml.example students.yml
-```
-
-Now fill in all your student names. After you finished this step you can render the actual `main.tf` file for terraform (we are using Python to render the `main.tf` because terraform doesn't support looping with modules -> <https://github.com/hashicorp/terraform/issues/953> as soon as this feature is available we can get rid of the Python script):
-
-```bash
-./render.py
-```
-
-Finally we need to create the `terraform.tfvars` file that contains all variables to use this terraform script:
+We need to create the `terraform.tfvars` file that contains all variables to use this terraform script:
 
 ```bash
 cp terraform.tfvarsexample terraform.tfvars
 ```
 
-Now fill in all the requiered variables.
+Now fill in all the required variables (e.g. your student names).
 
 ## Run terraform
 
@@ -50,7 +37,7 @@ After we initialized everything we need to login via the [Azure cli](https://doc
 az login
 ```
 
-Now we can verify everything with the `plan` step: `terraform plan` if everythings looks fine just apply the changes: `terraform apply`
+Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 
 ## Package all information for the students
 

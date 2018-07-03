@@ -7,24 +7,26 @@ provider "local" {
 }
 
 resource "tls_private_key" "ssh_key" {
+  count     = "${length(var.students)}"
   algorithm = "RSA"
   rsa_bits  = "4096"
 }
 
 resource "local_file" "private_key_pem" {
-  content  = "${tls_private_key.ssh_key.private_key_pem}"
-  filename = "${path.cwd}/keys/${var.student}"
+  count    = "${length(var.students)}"
+  content  = "${element(tls_private_key.ssh_key.*.private_key_pem, count.index)}"
+  filename = "${path.cwd}/keys/${element(var.students, count.index)}"
 
   provisioner "local-exec" {
-    command = "chmod 600 ${path.cwd}/keys/${var.student}"
+    command = "chmod 600 ${path.cwd}/keys/${element(var.students, count.index)}"
   }
 }
 
 module "master" {
   source                 = "../student_node"
-  student                = "${var.student}"
+  students               = "${var.students}"
   name                   = "master"
-  public_ssh_key         = "${tls_private_key.ssh_key.public_key_openssh}"
+  public_ssh_keys         = "${tls_private_key.ssh_key.*.public_key_openssh}" # .public_key_openssh
   azurerm_resource_group = "${var.azurerm_resource_group}"
   azurerm_subnet         = "${var.azurerm_subnet}"
   virtual_network_name   = "${var.virtual_network_name}"
@@ -33,16 +35,18 @@ module "master" {
 
 module "node0" {
   source                 = "../student_node"
-  student                = "${var.student}"
+  students                = "${var.students}"
   name                   = "node0"
-  public_ssh_key         = "${tls_private_key.ssh_key.public_key_openssh}"
+  public_ssh_keys         = "${tls_private_key.ssh_key.*.public_key_openssh}"
   azurerm_resource_group = "${var.azurerm_resource_group}"
   azurerm_subnet         = "${var.azurerm_subnet}"
   virtual_network_name   = "${var.virtual_network_name}"
   instance_type          = "${var.instance_type}"
 }
 
+### TODO how to handle this ? with a count?
 resource "local_file" "public_ips" {
-  content  = "master: ${module.master.public_ip}\nnode: ${module.node0.public_ip}\n"
-  filename = "${path.cwd}/ips/${var.student}"
+  count    = "${length(var.students)}"
+  content  = "master: ${element(module.master.public_ip, count.index)}\nnode: ${element(module.node0.public_ip, count.index)}\n"
+  filename = "${path.cwd}/ips/${element(var.students, count.index)}"
 }

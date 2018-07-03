@@ -29,14 +29,11 @@ resource "azurerm_subnet" "subnet" {
   address_prefix       = "${var.cidr}"
 }
 
-{% for student in students %}
-module "{{ student }}" {
+module student_workspace {
   source                 = "modules/student_workspace"
-  student                = "{{ student }}"
+  students               = "${var.students}"
   azurerm_resource_group = "${azurerm_resource_group.resource_group.name}"
   azurerm_subnet         = "${azurerm_subnet.subnet.name}"
   virtual_network_name   = "${azurerm_virtual_network.vnet.name}"
   instance_type          = "${var.instance_type}"
 }
-
-{% endfor %}
