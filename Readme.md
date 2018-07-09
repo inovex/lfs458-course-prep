@@ -41,7 +41,7 @@ Now we can verify everything with the `plan` step: `terraform plan` if everythin
 
 ## Package all information for the students
 
-TODO!
+Run `create_package.sh` to create a tar file including the ip and key file for each student.
 
 ## Clean up
 
