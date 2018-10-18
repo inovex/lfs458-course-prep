@@ -6,3 +6,4 @@ terraform.tfstate.backup
 .terraform
 ips
 packages
+account.json

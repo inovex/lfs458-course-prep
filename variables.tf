@@ -2,24 +2,23 @@ variable trainer {
   type = "string"
 }
 
-variable resource_group {
+variable region {
   type = "string"
 }
 
-variable cidr {
-  type    = "string"
-  default = "10.0.0.0/16"
-}
-
-variable location {
+variable project {
   type = "string"
 }
 
-variable instance_type {
+variable machine_type {
   type = "string"
 }
 
 variable students {
   type    = "list"
   default = []
+}
+
+variable zone {
+  type = "string"
 }

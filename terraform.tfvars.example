@@ -1,5 +1,6 @@
-trainer = "myself"
-resource_group = "lfs458"
-location = "West Europe"
-instance_type = "Standard_D2_v3"
-students = ["student1", "student2", "student3"]
+trainer = "trainer"
+project = "project"
+region = "region"
+zone = "zone"
+machine_type = "n1-standard-2"
+students = ["student1"]

@@ -2,16 +2,15 @@
 
 This terraform script will create the following resources:
 
-- Azure resrouce group
-- Azure Vnet
-- Azure Subnet
-- For each student two Azure VMs with a public IP (the public ips are stored under `ips`)
+- GCP VPC
+- GCP Firewall rule
+- For each student two GCP instances with a public IP (the public ips are stored under `ips`)
 - For each student an indiviual ssh keypair will be generated (and be stored under `keys`)
 
 ## Prerequisite
 
 - terraform (`v0.11.7`)
-- Azure subscription
+- GCP Account
 
 ## Preparation
 
@@ -31,11 +30,7 @@ In the first step we need to initialize all the modules and providers:
 terraform init
 ```
 
-After we initialized everything we need to login via the [Azure cli](https://docs.microsoft.com/de-de/cli/azure/install-azure-cli?view=azure-cli-latest):
-
-```bash
-az login
-```
+See [here](https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform) how to setup GCP and terraform
 
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 
