@@ -23,25 +23,23 @@ resource "local_file" "private_key_pem" {
 }
 
 module "master" {
-  source                 = "../student_node"
-  students               = "${var.students}"
-  name                   = "master"
-  public_ssh_keys        = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  azurerm_resource_group = "${var.azurerm_resource_group}"
-  azurerm_subnet         = "${var.azurerm_subnet}"
-  virtual_network_name   = "${var.virtual_network_name}"
-  instance_type          = "${var.instance_type}"
+  source          = "../student_node"
+  students        = "${var.students}"
+  name            = "master"
+  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
+  network         = "${var.network}"
+  machine_type    = "${var.machine_type}"
+  zone            = "${var.zone}"
 }
 
 module "node0" {
-  source                 = "../student_node"
-  students               = "${var.students}"
-  name                   = "node0"
-  public_ssh_keys        = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  azurerm_resource_group = "${var.azurerm_resource_group}"
-  azurerm_subnet         = "${var.azurerm_subnet}"
-  virtual_network_name   = "${var.virtual_network_name}"
-  instance_type          = "${var.instance_type}"
+  source          = "../student_node"
+  students        = "${var.students}"
+  name            = "node0"
+  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
+  network         = "${var.network}"
+  machine_type    = "${var.machine_type}"
+  zone            = "${var.zone}"
 }
 
 resource "local_file" "public_ips" {

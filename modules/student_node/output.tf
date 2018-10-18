@@ -1,4 +1,4 @@
 # TODO how to know which student has which ips?
 output "public_ip" {
-  value = "${azurerm_public_ip.pub_ip.*.ip_address}"
+  value = "${google_compute_instance.node.*.network_interface.0.access_config.0.nat_ip}"
 }
