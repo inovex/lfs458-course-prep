@@ -1,4 +1,3 @@
-trainer = "trainer"
 project = "project"
 region = "region"
 zone = "zone"

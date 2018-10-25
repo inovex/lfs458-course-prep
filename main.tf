@@ -15,7 +15,7 @@ resource "google_compute_firewall" "allow_all" {
   network = "${google_compute_network.vpc_network.name}"
 
   allow {
-    protocol = "tcp"
+    protocol = "all"
   }
 }
 

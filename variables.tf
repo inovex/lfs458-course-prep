@@ -1,7 +1,3 @@
-variable trainer {
-  type = "string"
-}
-
 variable region {
   type = "string"
 }
