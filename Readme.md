@@ -6,6 +6,7 @@ This terraform script will create the following resources:
 - GCP Firewall rule
 - For each student two GCP instances with a public IP (the public ips are stored under `ips`)
 - For each student an indiviual ssh keypair will be generated (and be stored under `keys`)
+- For each student an zip file will be created (and stored under `packages`)
 
 ## Prerequisite
 
@@ -33,10 +34,6 @@ terraform init
 See [here](https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform) how to setup GCP and terraform
 
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
-
-## Package all information for the students
-
-Run `create_package.sh` to create a tar file including the ip and key file for each student.
 
 ## Clean up
 
