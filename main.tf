@@ -5,6 +5,11 @@ provider "google" {
   region      = "${var.region}"
 }
 
+
+provider "null" {
+  version     = "~> 2.1"
+}
+
 resource "google_compute_network" "vpc_network" {
   name                    = "lfs458-network"
   auto_create_subnetworks = "true"
@@ -25,4 +30,15 @@ module student_workspace {
   network      = "${google_compute_network.vpc_network.name}"
   machine_type = "${var.machine_type}"
   zone         = "${var.zone}"
+}
+
+
+resource "null_resource" "cluster" {
+  triggers = {
+    dummy = "student_workspace"
+  }
+
+  provisioner "local-exec" {
+    command = "./create_package.sh"
+  }
 }

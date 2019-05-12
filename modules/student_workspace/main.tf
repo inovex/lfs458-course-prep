@@ -6,10 +6,6 @@ provider "local" {
   version = "~> 1.1.0"
 }
 
-provider "archive" {
-  version = "~> 1.1.0"
-}
-
 resource "tls_private_key" "ssh_key" {
   count     = "${length(var.students)}"
   algorithm = "RSA"
@@ -50,20 +46,4 @@ resource "local_file" "public_ips" {
   count    = "${length(var.students)}"
   content  = "master: ${module.master.public_ip[count.index]}\nnode: ${module.node0.public_ip[count.index]}\n"
   filename = "${path.cwd}/ips/${var.students[count.index]}"
-}
-
-data "archive_file" "student_package" {
-  count       = "${length(var.students)}"
-  type        = "zip"
-  output_path = "${path.cwd}/packages/${var.students[count.index]}.zip"
-
-  source {
-    content  = "${file("${path.cwd}/keys/${var.students[count.index]}")}"
-    filename = "${var.students[count.index]}"
-  }
-
-  source {
-    content  = "${file("${path.cwd}/ips/${var.students[count.index]}")}"
-    filename = "ips"
-  }
 }
