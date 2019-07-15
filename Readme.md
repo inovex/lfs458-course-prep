@@ -10,7 +10,8 @@ This terraform script will create the following resources:
 
 ## Prerequisite
 
-- terraform (`v0.11.7`)
+- terraform (`v0.11.14`)
+- [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - GCP Account
 
 ## Preparation

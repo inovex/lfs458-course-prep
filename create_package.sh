@@ -13,5 +13,5 @@ for f in ${@};
 do
   FILENAME="$(basename "$f")"
   echo "Create package for ${FILENAME}"
-  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./ips/${FILENAME}"
+  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}"
 done
