@@ -17,7 +17,3 @@ variable public_ssh_keys {
 variable machine_type {
   type = "string"
 }
-
-variable zone {
-  type = "string"
-}

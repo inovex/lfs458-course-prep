@@ -29,7 +29,6 @@ module "master" {
   public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
   network         = "${var.network}"
   machine_type    = "${var.machine_type}"
-  zone            = "${var.zone}"
 }
 
 module "node0" {
@@ -39,7 +38,6 @@ module "node0" {
   public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
   network         = "${var.network}"
   machine_type    = "${var.machine_type}"
-  zone            = "${var.zone}"
 }
 
 resource "local_file" "public_ips" {

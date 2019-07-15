@@ -9,7 +9,3 @@ variable network {
 variable machine_type {
   type = "string"
 }
-
-variable zone {
-  type = "string"
-}

@@ -14,7 +14,3 @@ variable students {
   type    = "list"
   default = []
 }
-
-variable zone {
-  type = "string"
-}

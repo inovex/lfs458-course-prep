@@ -29,9 +29,7 @@ module student_workspace {
   students     = "${var.students}"
   network      = "${google_compute_network.vpc_network.name}"
   machine_type = "${var.machine_type}"
-  zone         = "${var.zone}"
 }
-
 
 resource "null_resource" "cluster" {
   triggers = {
