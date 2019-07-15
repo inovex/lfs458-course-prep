@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-set +eu
+set +xeu
 
-export DEST="packages"
+export DEST="./packages"
 
-rm -rf packages/*
-mkdir -p packages
+rm -rf "${DEST}/*"
+mkdir -p "${DEST}"
 
-for f in ./ips/*;
+for f in ${@};
 do
   FILENAME="$(basename "$f")"
   echo "Create pacakge for ${FILENAME}"
