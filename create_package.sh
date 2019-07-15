@@ -13,5 +13,5 @@ for f in ${@};
 do
   FILENAME="$(basename "$f")"
   echo "Create package for ${FILENAME}"
-  tar cfz "${DEST}/${FILENAME}.tar.gz" "./keys/${FILENAME}" "./ips/${FILENAME}"
+  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./ips/${FILENAME}"
 done
