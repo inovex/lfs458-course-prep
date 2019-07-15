@@ -1,3 +1,7 @@
+terraform {
+  required_version = "~>0.11.14"
+}
+
 provider "google" {
   version     = "~> v1.19.1"
   credentials = "${file("account.json")}"
