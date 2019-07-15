@@ -9,9 +9,8 @@ provider "google" {
   region      = "${var.region}"
 }
 
-
 provider "null" {
-  version     = "~> 2.1"
+  version = "~> 2.1"
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -33,9 +32,7 @@ module student_workspace {
   students     = "${var.students}"
   network      = "${google_compute_network.vpc_network.name}"
   machine_type = "${var.machine_type}"
-  zone         = "${var.zone}"
 }
-
 
 resource "null_resource" "cluster" {
   triggers = {

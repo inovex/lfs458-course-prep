@@ -1,5 +1,4 @@
 project = "project"
 region = "region"
-zone = "zone"
 machine_type = "n1-standard-2"
 students = ["student1"]
