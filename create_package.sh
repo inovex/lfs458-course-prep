@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set +xeu
+set -eu
 
 export DEST="./packages"
 
