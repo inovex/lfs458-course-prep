@@ -5,9 +5,8 @@ provider "google" {
   region      = "${var.region}"
 }
 
-
 provider "null" {
-  version     = "~> 2.1"
+  version = "~> 2.1"
 }
 
 resource "google_compute_network" "vpc_network" {
