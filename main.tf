@@ -25,7 +25,7 @@ resource "google_compute_firewall" "allow_all" {
 }
 
 module student_workspace {
-  source       = "modules/student_workspace"
+  source       = "./modules/student_workspace"
   students     = "${var.students}"
   network      = "${google_compute_network.vpc_network.name}"
   machine_type = "${var.machine_type}"
