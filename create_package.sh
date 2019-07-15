@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-set +eu
+set -eu
 
-export DEST="packages"
+# Find the script location. Inspired by: https://stackoverflow.com/questions/59895/get-the-source-directory-of-a-bash-script-from-within-the-script-itself
+scriptLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-rm -rf packages/*
-mkdir -p packages
+export DEST="${scriptLocation}/packages"
 
-for f in ./ips/*;
+rm -rf "${DEST}/*"
+mkdir -p "${DEST}"
+
+for f in ${@};
 do
   FILENAME="$(basename "$f")"
-  echo "Create pacakge for ${FILENAME}"
+  echo "Create package for ${FILENAME}"
   tar cfz "${DEST}/${FILENAME}.tar.gz" "./keys/${FILENAME}" "./ips/${FILENAME}"
 done

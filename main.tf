@@ -40,6 +40,6 @@ resource "null_resource" "cluster" {
   }
 
   provisioner "local-exec" {
-    command = "./create_package.sh"
+    command = "./create_package.sh ${join(" ", module.student_workspace.keys)}"
   }
 }
