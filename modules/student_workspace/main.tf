@@ -22,14 +22,6 @@ resource "local_file" "private_key_pem" {
   }
 }
 
-resource "null_resource" "private_key_putty" {
-  count = "${length(var.students)}"
-
-  provisioner "local-exec" {
-    command = "puttygen ${path.cwd}/keys/${var.students[count.index]} -O private -o keys/${var.students[count.index]}.ppk"
-  }
-}
-
 module "master" {
   source          = "../student_node"
   students        = "${var.students}"

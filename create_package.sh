@@ -13,5 +13,6 @@ for f in ${@};
 do
   FILENAME="$(basename "$f")"
   echo "Create package for ${FILENAME}"
+  puttygen "./keys/${FILENAME}" -O private -o "keys/${FILENAME}.ppk"
   zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}"
 done
