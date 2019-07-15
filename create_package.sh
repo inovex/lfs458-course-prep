@@ -9,6 +9,6 @@ mkdir -p "${DEST}"
 for f in ${@};
 do
   FILENAME="$(basename "$f")"
-  echo "Create pacakge for ${FILENAME}"
+  echo "Create package for ${FILENAME}"
   tar cfz "${DEST}/${FILENAME}.tar.gz" "./keys/${FILENAME}" "./ips/${FILENAME}"
 done
