@@ -21,7 +21,7 @@ resource "google_compute_instance" "node" {
     }
   }
 
-  metadata_startup_script = "modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward"
+  metadata_startup_script = "apt-get update && apt-get install -y python && modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward"
 
   metadata {
     ssh-keys = "student:${trimspace(var.public_ssh_keys[count.index])} student"
