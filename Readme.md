@@ -39,3 +39,7 @@ Now we can verify everything with the `plan` step: `terraform plan` if everythin
 ## Clean up
 
 In order to clean up everything just run: `terraform destroy`
+
+### Save Homes
+ 
+If you want to save the homes for your students, run the script `save_homes.sh`. This will copy all the contents of `/home/student` from the machines onto your machine. Then zip the files up and place them in `$(pwd)/homes`.

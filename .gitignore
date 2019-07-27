@@ -6,5 +6,6 @@ terraform.tfstate.backup
 .terraform
 ips
 packages
+homes
 account.json
 .DS_STORE
