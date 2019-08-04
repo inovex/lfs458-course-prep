@@ -6,10 +6,10 @@ scriptLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd 
 
 export DEST="${scriptLocation}/packages"
 
-rm -rf "${DEST}/*"
+rm -rf "${DEST}"
 mkdir -p "${DEST}"
 
-for f in ${@};
+for f in ips/*;
 do
   FILENAME="$(basename "$f")"
   echo "Create package for ${FILENAME}"
