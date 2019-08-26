@@ -36,10 +36,11 @@ module student_workspace {
 
 resource "null_resource" "cluster" {
   triggers = {
-    dummy = "student_workspace"
+    ips  = "${join(" ", module.student_workspace.ips)}"
+    keys = "${join(" ", module.student_workspace.keys)}"
   }
 
   provisioner "local-exec" {
-    command = "./create_package.sh ${join(" ", module.student_workspace.keys)}"
+    command = "./create_package.sh"
   }
 }
