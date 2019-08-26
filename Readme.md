@@ -13,6 +13,7 @@ This terraform script will create the following resources:
 - terraform (`v0.11.14`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - GCP Account
+    * Every student requires 5 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
 
 ## Preparation
 

@@ -40,8 +40,35 @@ module "node0" {
   machine_type    = "${var.machine_type}"
 }
 
+module "proxy" {
+  source          = "../student_node"
+  students        = "${var.students}"
+  name            = "proxy"
+  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
+  network         = "${var.network}"
+  machine_type    = "${var.machine_type}"
+}
+
+module "second_master" {
+  source          = "../student_node"
+  students        = "${var.students}"
+  name            = "second-master"
+  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
+  network         = "${var.network}"
+  machine_type    = "${var.machine_type}"
+}
+
+module "third_master" {
+  source          = "../student_node"
+  students        = "${var.students}"
+  name            = "third-master"
+  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
+  network         = "${var.network}"
+  machine_type    = "${var.machine_type}"
+}
+
 resource "local_file" "public_ips" {
   count    = "${length(var.students)}"
-  content  = "master: ${module.master.public_ip[count.index]}\nnode: ${module.node0.public_ip[count.index]}\n"
+  content  = "master: ${module.master.public_ip[count.index]}\nnode: ${module.node0.public_ip[count.index]}\nproxy: ${module.proxy.public_ip[count.index]}\nsecond-master: ${module.second_master.public_ip[count.index]}\nthird-master: ${module.third_master.public_ip[count.index]}\n"
   filename = "${path.cwd}/ips/${var.students[count.index]}"
 }
