@@ -1,9 +1,9 @@
 provider "tls" {
-  version = "~> 1.1.0"
+  version = "~> 2.1.0"
 }
 
 provider "local" {
-  version = "~> 1.1.0"
+  version = "~> 1.3.0"
 }
 
 resource "tls_private_key" "ssh_key" {
