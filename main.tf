@@ -36,8 +36,8 @@ module student_workspace {
 
 resource "null_resource" "cluster" {
   triggers = {
-    ips  = "${join(" ", module.student_workspace.ips)}"
-    keys = "${join(" ", module.student_workspace.keys)}"
+    ips  = "${ module.student_workspace.ips_checksum}"
+    keys = "${module.student_workspace.keys_checksum}"
   }
 
   provisioner "local-exec" {
