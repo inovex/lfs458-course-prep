@@ -41,7 +41,8 @@ Now we can verify everything with the `plan` step: `terraform plan` if everythin
 The provided dockerfile set up a system with all required software. To deploy the training environment run:
 ```bash
 docker build -t lfs458-prep
-docker run -it -v $(pwd):/wd -w /wd lfs458-prep
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep init
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep apply
 ```
 
 
@@ -53,7 +54,7 @@ In order to clean up everything just run: `terraform destroy`
 
 In order to clean up everything using the docker setup, run: 
 ```bash
-docker run -it -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
 ```
 
 ### Save Homes
