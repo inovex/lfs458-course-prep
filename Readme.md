@@ -10,10 +10,10 @@ This terraform script will create the following resources:
 
 ## Prerequisite
 
-- terraform (`v0.11.14`)
+- terraform (`v0.12.7`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - GCP Account
-    * Every student requires 5 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
+    * Every student requires 10 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
 
 ## Preparation
 
@@ -37,9 +37,27 @@ See [here](https://cloud.google.com/community/tutorials/managing-gcp-projects-wi
 
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 
+### Run in Docker
+
+The provided dockerfile set up a system with all required software. To deploy the training environment run:
+
+```bash
+docker build -t lfs458-prep
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep init
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep apply
+```
+
 ## Clean up
 
 In order to clean up everything just run: `terraform destroy`
+
+### Cleanup in Docker
+
+In order to clean up everything using the docker setup, run:
+
+```bash
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
+```
 
 ### Save Homes
  
