@@ -11,16 +11,16 @@ mkdir -p ${dest}
 function ipOf() {
    local student=${1}
    local node=${2}
-   cat ${scriptLocation}/ips/${student} | grep ${node} | awk '{ print $2 }'
+   cat ${scriptLocation}/ips/${student} | grep -e "^${node}:" | awk '{ print $2 }'
 }
 
 function download() {
    local student=${1}
    tmpDir=$(mktemp -d)
-   mkdir  ${tmpDir}/master
-   scp -q -o StrictHostKeyChecking=no -r -i ${scriptLocation}/keys/${student} student@$(ipOf ${student} master):/home/student ${tmpDir}/master || echo "some files might be missing for ${student} master"
-   mkdir ${tmpDir}/node
-   scp -q -o StrictHostKeyChecking=no -r -i ${scriptLocation}/keys/${student} student@$(ipOf ${student} node):/home/student ${tmpDir}/node || echo "some files might be missing for ${student} node"
+   for n in master node proxy "second-master" "third-master"; do
+   	mkdir -p  "${tmpDir}/${n}"
+   	scp -q -o StrictHostKeyChecking=no -r -i ${scriptLocation}/keys/${student} student@$(ipOf ${student} ${n}):/home/student "${tmpDir}/${n}" || echo "some files might be missing for ${student} ${n}"
+   done
    zip -q -r ${dest}/${student}_home.zip ${tmpDir}
    rm -rf ${tmpDir}
 }
