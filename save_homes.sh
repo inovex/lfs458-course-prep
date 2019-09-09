@@ -17,7 +17,7 @@ function ipOf() {
 function download() {
    local student=${1}
    tmpDir=$(mktemp -d)
-   for n in $(cat ips/${student} | awk '{ print $1 }'); do
+   for n in $(awk -F: '{ print $1 }' ips/${student}); do
    	mkdir -p  "${tmpDir}/${n}"
    	scp -q -o StrictHostKeyChecking=no -r -i ${scriptLocation}/keys/${student} student@$(ipOf ${student} ${n}):/home/student "${tmpDir}/${n}" || echo "some files might be missing for ${student} ${n}"
    done
