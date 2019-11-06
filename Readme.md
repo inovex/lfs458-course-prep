@@ -60,5 +60,5 @@ docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep terr
 ```
 
 ### Save Homes
- 
+
 If you want to save the homes for your students, run the script `save_homes.sh`. This will copy all the contents of `/home/student` from the machines onto your machine. Then zip the files up and place them in `$(pwd)/homes`.
