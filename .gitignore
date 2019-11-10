@@ -10,3 +10,8 @@ homes
 account.json
 .DS_STORE
 notes.txt
+.venv
+token.pickle
+credentials.json
+mail/mail_template.txt
+mail/mail_info.yaml

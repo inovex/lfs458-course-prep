@@ -1,0 +1,6 @@
+sender: dummy@nope.dev
+subject: "LFS458 Course"
+attendees:
+- Surname: Mustermann
+  Mail: max.mustermann@nope.dev
+  Short: mmustermann

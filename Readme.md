@@ -47,6 +47,19 @@ docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep init
 docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep apply
 ```
 
+## Sending Mails
+
+Ensure that the [Gmail API](https://developers.google.com/gmail/api/quickstart/python#step_1_turn_on_the) is activated.
+
+```bash
+virtualenv --python=python3.7 .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Adjust the files under `mail`.
+Finally send the mails and thee attachments with: `python3 send_mails.py`
+
 ## Clean up
 
 In order to clean up everything just run: `terraform destroy`
