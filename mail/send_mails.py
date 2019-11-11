@@ -14,7 +14,6 @@ from email.mime.base import MIMEBase
 import base64
 import mimetypes
 from apiclient import errors
-from httplib2 import Http
 import yaml
 
 
@@ -48,22 +47,18 @@ def create_message_with_attachment(sender, to, subject, message_text, file):
     content_type = 'application/octet-stream'
   main_type, sub_type = content_type.split('/', 1)
   if main_type == 'text':
-    fp = open(file, 'rb')
-    msg = MIMEText(fp.read(), _subtype=sub_type)
-    fp.close()
+    with open(file, 'rb') as content:
+      msg = MIMEText(content.read(), _subtype=sub_type)
   elif main_type == 'image':
-    fp = open(file, 'rb')
-    msg = MIMEImage(fp.read(), _subtype=sub_type)
-    fp.close()
+    with open(file, 'rb') as content:
+      msg = MIMEImage(content.read(), _subtype=sub_type)
   elif main_type == 'audio':
-    fp = open(file, 'rb')
-    msg = MIMEAudio(fp.read(), _subtype=sub_type)
-    fp.close()
+    with open(file, 'rb') as content:
+      msg = MIMEAudio(content.read(), _subtype=sub_type)
   else:
-    fp = open(file, 'rb')
-    msg = MIMEBase(main_type, sub_type)
-    msg.set_payload(fp.read())
-    fp.close()
+    with open(file, 'rb') as content:
+      msg = MIMEBase(main_type, sub_type)
+      msg.set_payload(content.read())
   filename = os.path.basename(file)
   msg.add_header('Content-Disposition', 'attachment', filename=filename)
   message.attach(msg)
