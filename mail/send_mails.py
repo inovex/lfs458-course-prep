@@ -91,10 +91,10 @@ def send_message(service, user_id, message):
   try:
     message = (service.users().messages().send(userId=user_id, body=message)
                .execute())
-    print('Message Id: {}', message['id'])
+    print('Message Id: {}'.format(message['id']))
     return message
   except errors.HttpError as error:
-    print ("An error occurred: {}", error)
+    print ("An error occurred: {}".format(error))
 
 def main():
     """Shows basic usage of the Gmail API.
@@ -133,13 +133,14 @@ def main():
       text_template = temp.read()
 
     for attendee in attendees:
+        print("Send mail to: {}".format(attendee["Surname"]))
         msg = create_message_with_attachment(
           sender,
           attendee["Mail"],
           subject,
           text_template.format(**attendee),
-          "packages/{}.zip".format(attendee["Short"]))
-        send_message(service, attendee["Mail"], msg)
+          "../packages/{}.zip".format(attendee["Short"]))
+        send_message(service, "me", msg)
 
 
 if __name__ == '__main__':
