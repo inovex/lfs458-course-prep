@@ -25,7 +25,8 @@ resource "google_compute_instance" "node" {
   apt-get update && apt-get install -y python
   modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
   echo -ne 'filetype plugin indent on\nset expandtab\nset tabstop=2\nset softtabstop=2\nset shiftwidth=2\nset softtabstop=2\n' > /home/student/.vimrc
-  echo 'alias tailf="tail -f"' >> /home/student/.bashrc"
+  echo 'alias tailf="tail -f"' >> /home/student/.bashrc
+  touch /home/student/.rnd"
 EOF
 
   metadata = {
