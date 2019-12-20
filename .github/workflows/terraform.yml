@@ -22,6 +22,8 @@ jobs:
           tf_actions_subcommand: 'init'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create dummy account.json file
+        run: touch account.json
       - name: 'Terraform Validate'
         uses: hashicorp/terraform-github-actions@v0.6.3
         with:
