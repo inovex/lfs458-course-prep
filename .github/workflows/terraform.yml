@@ -8,6 +8,7 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v2
+<<<<<<< HEAD
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 0.12.18
@@ -38,3 +39,19 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
+=======
+      - name: 'Terraform Format'
+        uses: hashicorp/terraform-github-actions@v0.6.3
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: 'fmt'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Terraform Validate'
+        uses: hashicorp/terraform-github-actions@v0.6.3
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: 'validate'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+>>>>>>> Add GitHub action for terraform fmt and validation
