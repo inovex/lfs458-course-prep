@@ -41,25 +41,25 @@ jobs:
             })
 =======
       - name: 'Terraform Format'
-        uses: hashicorp/terraform-github-actions@v0.6.3
+        uses: &terraform_github_action hashicorp/terraform-github-actions@v0.6.3
         with:
-          tf_actions_version: 0.12.13
+          tf_actions_version: &terraform_ver 0.12.18
           tf_actions_subcommand: 'fmt'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Terraform Init'
-        uses: hashicorp/terraform-github-actions@v0.6.3
+        uses: *terraform_github_action
         with:
-          tf_actions_version: 0.12.13
+          tf_actions_version: *terraform_ver
           tf_actions_subcommand: 'init'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create dummy account.json file
         run: touch account.json
       - name: 'Terraform Validate'
-        uses: hashicorp/terraform-github-actions@v0.6.3
+        uses: *terraform_github_action
         with:
-          tf_actions_version: 0.12.13
+          tf_actions_version: *terraform_ver
           tf_actions_subcommand: 'validate'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
