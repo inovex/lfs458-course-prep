@@ -1,11 +1,11 @@
 variable students {
-  type = "list"
+  type = list(string)
 }
 
 variable network {
-  type = "string"
+  type = string
 }
 
 variable machine_type {
-  type = "string"
+  type = string
 }
