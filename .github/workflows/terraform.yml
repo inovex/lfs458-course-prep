@@ -1,0 +1,24 @@
+name: 'Terraform GitHub Actions'
+on:
+  - pull_request
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+      - name: 'Terraform Format'
+        uses: hashicorp/terraform-github-actions@v0.6.3
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: 'fmt'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Terraform Validate'
+        uses: hashicorp/terraform-github-actions@v0.6.3
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: 'validate'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
