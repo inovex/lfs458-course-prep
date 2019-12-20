@@ -1,10 +1,10 @@
 data "google_compute_zones" "available" {}
 
 resource "google_compute_instance" "node" {
-  count          = "${length(var.students)}"
+  count          = length(var.students)
   name           = "${var.students[count.index]}-${var.name}"
-  machine_type   = "${var.machine_type}"
-  zone           = "${data.google_compute_zones.available.names[0]}"
+  machine_type   = var.machine_type
+  zone           = data.google_compute_zones.available.names[0]
   can_ip_forward = "true"
 
   boot_disk {
@@ -14,7 +14,7 @@ resource "google_compute_instance" "node" {
   }
 
   network_interface {
-    network = "${var.network}"
+    network = var.network
 
     access_config {
       // Ephemeral IP
