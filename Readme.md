@@ -20,7 +20,7 @@ This terraform script will create the following resources:
 We need to create the `terraform.tfvars` file that contains all variables to use this terraform script:
 
 ```bash
-cp terraform.tfvarsexample terraform.tfvars
+cp terraform.tfvars.example terraform.tfvars
 ```
 
 Now fill in all the required variables (e.g. your student names).
