@@ -2,17 +2,15 @@
 from __future__ import print_function
 import pickle
 import os.path
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import base64
+import mimetypes
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
-from email.message import Message
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-import base64
-import mimetypes
 from apiclient import errors
 import yaml
 
@@ -20,76 +18,68 @@ import yaml
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-def create_message_with_attachment(sender, to, subject, message_text, file):
-  """Create a message for an email.
+def create_message_with_attachment(sender, receiver, subject, message_text, file):
+    """Create a message for an email.
 
-  Args:
-    sender: Email address of the sender.
-    to: Email address of the receiver.
-    subject: The subject of the email message.
-    message_text: The text of the email message.
-    file: The path to the file to be attached.
+    Args:
+      sender: Email address of the sender.
+      receiver: Email address of the receiver.
+      subject: The subject of the email message.
+      message_text: The text of the email message.
+      file: The path to the file to be attached.
 
-  Returns:
-    An object containing a base64url encoded email object.
-  """
-  message = MIMEMultipart()
-  message['to'] = to
-  message['from'] = sender
-  message['subject'] = subject
+    Returns:
+      An object containing a base64url encoded email object.
+    """
+    message = MIMEMultipart()
+    message['to'] = receiver
+    message['from'] = sender
+    message['subject'] = subject
 
-  msg = MIMEText(message_text)
-  message.attach(msg)
+    msg = MIMEText(message_text)
+    message.attach(msg)
 
-  content_type, encoding = mimetypes.guess_type(file)
+    content_type, encoding = mimetypes.guess_type(file)
+    if content_type is None or encoding is not None:
+        content_type = "application/octet-stream"
 
-  if content_type is None or encoding is not None:
-    content_type = 'application/octet-stream'
-  main_type, sub_type = content_type.split('/', 1)
-  if main_type == 'text':
+    main_type, sub_type = content_type.split("/", 1)
+    msg = MIMEBase(main_type, sub_type)
     with open(file, 'rb') as content:
-      msg = MIMEText(content.read(), _subtype=sub_type)
-  elif main_type == 'image':
-    with open(file, 'rb') as content:
-      msg = MIMEImage(content.read(), _subtype=sub_type)
-  elif main_type == 'audio':
-    with open(file, 'rb') as content:
-      msg = MIMEAudio(content.read(), _subtype=sub_type)
-  else:
-    with open(file, 'rb') as content:
-      msg = MIMEBase(main_type, sub_type)
-      msg.set_payload(content.read())
-  filename = os.path.basename(file)
-  msg.add_header('Content-Disposition', 'attachment', filename=filename)
-  message.attach(msg)
+        msg.set_payload(content.read())
 
-  message_as_bytes = message.as_bytes() # the message should converted from string to bytes.
-  message_as_base64 = base64.urlsafe_b64encode(message_as_bytes) #encode in base64 (printable letters coding)
-  raw = message_as_base64.decode()  # need to JSON serializable (no idea what does it means)
-  return {'raw': raw}
+    # Fixes malformed content: https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
+    encoders.encode_base64(msg)
+    filename = os.path.basename(file)
+    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+    message.attach(msg)
 
-  #return {'raw': base64.urlsafe_b64encode(message.as_string().encode())}
-
+    # the message should converted from string to bytes.
+    message_as_bytes = message.as_bytes()
+    # encode in base64 (printable letters coding)
+    message_as_base64 = base64.urlsafe_b64encode(message_as_bytes)
+    # need to JSON serializable (no idea what does it means)
+    return {'raw': message_as_base64.decode()}
 
 def send_message(service, user_id, message):
-  """Send an email message.
+    """Send an email message.
 
-  Args:
-    service: Authorized Gmail API service instance.
-    user_id: User's email address. The special value "me"
-    can be used to indicate the authenticated user.
-    message: Message to be sent.
+    Args:
+      service: Authorized Gmail API service instance.
+      user_id: User's email address. The special value "me"
+      can be used to indicate the authenticated user.
+      message: Message to be sent.
 
-  Returns:
-    Sent Message.
-  """
-  try:
-    message = (service.users().messages().send(userId=user_id, body=message)
-               .execute())
-    print('Message Id: {}'.format(message['id']))
-    return message
-  except errors.HttpError as error:
-    print ("An error occurred: {}".format(error))
+    Returns:
+      Sent Message.
+    """
+    try:
+        message = (service.users().messages().send(userId=user_id, body=message)
+                   .execute())
+        print('Message Id: {}'.format(message['id']))
+        return message
+    except errors.HttpError as error:
+        print("An error occurred: {}".format(error))
 
 def main():
     """Shows basic usage of the Gmail API.
@@ -120,21 +110,21 @@ def main():
     mail_info = yaml.safe_load(open("mail_info.yaml"))
     attendees = mail_info["attendees"]
     sender = mail_info["sender"]
-    subject =  mail_info["subject"]
+    subject = mail_info["subject"]
 
     # Read Mail template
     text_template = ""
     with open("mail_template.txt") as temp:
-      text_template = temp.read()
+        text_template = temp.read()
 
     for attendee in attendees:
         print("Send mail to: {}".format(attendee["Surname"]))
         msg = create_message_with_attachment(
-          sender,
-          attendee["Mail"],
-          subject,
-          text_template.format(**attendee),
-          "../packages/{}.zip".format(attendee["Short"]))
+            sender,
+            attendee["Mail"],
+            subject,
+            text_template.format(**attendee),
+            "../packages/{}.zip".format(attendee["Short"]))
         send_message(service, "me", msg)
 
 
