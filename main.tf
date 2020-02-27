@@ -38,6 +38,7 @@ module "student_workspace" {
   instances    = var.instances
   network      = google_compute_network.vpc_network.name
   machine_type = var.machine_type
+  course_type  = var.course_type
 }
 
 resource "null_resource" "cluster" {

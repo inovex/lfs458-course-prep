@@ -13,3 +13,7 @@ variable machine_type {
 variable "instances" {
   type = list(string)
 }
+
+variable "course_type" {
+  type = string
+}

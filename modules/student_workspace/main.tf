@@ -68,14 +68,13 @@ EOF
   }
 
   labels = {
-    environment = "lfs458"
+    environment = var.course_type
     student     = "${element(local.student_instances, count.index)[0]}"
   }
 }
 
 resource "local_file" "public_ips" {
-  count    = length(var.students)
-  // we still need to flatten this one and filter on labels ?
-  content  = ""
-  filename = "${path.cwd}/ips/${var.students[count.index]}"
+  for_each  = toset(var.students)
+  content  = join("\n", [for i in google_compute_instance.node.* : i.network_interface.0.access_config.0.nat_ip if i.labels.student == each.value ])
+  filename = "${path.cwd}/ips/${each.value}"
 }
