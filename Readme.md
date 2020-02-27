@@ -54,6 +54,7 @@ Ensure that the [Gmail API](https://developers.google.com/gmail/api/quickstart/p
 ```bash
 virtualenv --python=python3.7 .venv
 . .venv/bin/activate
+cd mail
 pip install -r requirements.txt
 ```
 
