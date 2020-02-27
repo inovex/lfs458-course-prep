@@ -6,69 +6,76 @@ provider "local" {
   version = "~> 1.3.0"
 }
 
+data "google_compute_zones" "available" {}
+
+locals {
+  student_instances = setproduct(var.students, var.instances)
+}
+
 resource "tls_private_key" "ssh_key" {
-  count     = length(var.students)
+  for_each  = toset(var.students)
   algorithm = "RSA"
   rsa_bits  = "4096"
 }
 
 resource "local_file" "private_key_pem" {
-  count    = length(var.students)
-  content  = tls_private_key.ssh_key.*.private_key_pem[count.index]
-  filename = "${path.cwd}/keys/${var.students[count.index]}"
+  for_each = toset(var.students)
+  content  = tls_private_key.ssh_key[each.value].private_key_pem
+  filename = "${path.cwd}/keys/${each.value}"
 
   provisioner "local-exec" {
-    command = "chmod 600 ${path.cwd}/keys/${var.students[count.index]}"
+    command = "chmod 600 ${path.cwd}/keys/${each.value}"
   }
 }
 
-module "master" {
-  source          = "../student_node"
-  students        = var.students
-  name            = "master"
-  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  network         = var.network
-  machine_type    = var.machine_type
-}
+// We iterate over the product of students * instances e.g.
+// -> student0-master, student0-node and so on.
+resource "google_compute_instance" "node" {
+  count          = length(local.student_instances)
+  name           = "${element(local.student_instances, count.index)[0]}-${element(local.student_instances, count.index)[1]}"
+  machine_type   = var.machine_type
+  zone           = data.google_compute_zones.available.names[0]
+  can_ip_forward = "true"
 
-module "node0" {
-  source          = "../student_node"
-  students        = var.students
-  name            = "node0"
-  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  network         = var.network
-  machine_type    = var.machine_type
-}
+  boot_disk {
+    initialize_params {
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
+    }
+  }
 
-module "proxy" {
-  source          = "../student_node"
-  students        = var.students
-  name            = "proxy"
-  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  network         = var.network
-  machine_type    = var.machine_type
-}
+  network_interface {
+    network = var.network
 
-module "second_master" {
-  source          = "../student_node"
-  students        = var.students
-  name            = "second-master"
-  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  network         = var.network
-  machine_type    = var.machine_type
-}
+    access_config {
+      // Ephemeral IP
+    }
+  }
 
-module "third_master" {
-  source          = "../student_node"
-  students        = var.students
-  name            = "third-master"
-  public_ssh_keys = "${tls_private_key.ssh_key.*.public_key_openssh}"
-  network         = var.network
-  machine_type    = var.machine_type
+  metadata_startup_script = <<EOF
+  apt-get update && apt-get install -y python
+  modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+  echo -ne 'filetype plugin indent on\nset expandtab\nset tabstop=2\nset softtabstop=2\nset shiftwidth=2\nset softtabstop=2\n' > /home/student/.vimrc
+  echo 'alias tailf="tail -f"' >> /home/student/.bashrc
+  touch /home/student/.rnd"
+EOF
+
+  metadata = {
+    ssh-keys = "student:${trimspace(tls_private_key.ssh_key[element(local.student_instances, count.index)[0]].public_key_openssh)} student"
+  }
+
+  service_account {
+    scopes = []
+  }
+
+  labels = {
+    environment = "lfs458"
+    student     = "${element(local.student_instances, count.index)[0]}"
+  }
 }
 
 resource "local_file" "public_ips" {
   count    = length(var.students)
-  content  = "master: ${module.master.public_ip[count.index]}\nnode: ${module.node0.public_ip[count.index]}\nproxy: ${module.proxy.public_ip[count.index]}\nsecond-master: ${module.second_master.public_ip[count.index]}\nthird-master: ${module.third_master.public_ip[count.index]}\n"
+  // we still need to flatten this one and filter on labels ?
+  content  = ""
   filename = "${path.cwd}/ips/${var.students[count.index]}"
 }

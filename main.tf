@@ -35,6 +35,7 @@ resource "google_compute_firewall" "allow_all" {
 module "student_workspace" {
   source       = "./modules/student_workspace"
   students     = var.students
+  instances    = var.instances
   network      = google_compute_network.vpc_network.name
   machine_type = var.machine_type
 }
@@ -49,4 +50,3 @@ resource "null_resource" "cluster" {
     command = "./create_package.sh"
   }
 }
-

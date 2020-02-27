@@ -15,3 +15,8 @@ variable "students" {
   default = []
 }
 
+variable "instances" {
+  type = list(string)
+  // "proxy" "second-master" "third-master"
+  default = ["master", "node"]
+}
