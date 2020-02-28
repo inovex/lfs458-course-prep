@@ -9,7 +9,7 @@ provider "local" {
 data "google_compute_zones" "available" {}
 
 locals {
-  student_instances = setproduct(var.students, var.instances)
+  student_instances = toset([for i in setproduct(var.students, var.instances) : format("%s-%s", i[0], i[1])])
 }
 
 resource "tls_private_key" "ssh_key" {
@@ -30,9 +30,10 @@ resource "local_file" "private_key_pem" {
 
 // We iterate over the product of students * instances e.g.
 // -> student0-master, student0-node and so on.
+// We use for_each here becase count would destroy machines if we change the number of instances
 resource "google_compute_instance" "node" {
-  count          = length(local.student_instances)
-  name           = "${element(local.student_instances, count.index)[0]}-${element(local.student_instances, count.index)[1]}"
+  for_each       = local.student_instances
+  name           = each.value
   machine_type   = var.machine_type
   zone           = data.google_compute_zones.available.names[0]
   can_ip_forward = "true"
@@ -60,7 +61,7 @@ resource "google_compute_instance" "node" {
 EOF
 
   metadata = {
-    ssh-keys = "student:${trimspace(tls_private_key.ssh_key[element(local.student_instances, count.index)[0]].public_key_openssh)} student"
+    ssh-keys = "student:${trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)} student"
   }
 
   service_account {
@@ -69,12 +70,12 @@ EOF
 
   labels = {
     environment = var.course_type
-    student     = "${element(local.student_instances, count.index)[0]}"
+    student     = split("-", each.value)[0]
   }
 }
 
 resource "local_file" "public_ips" {
   for_each = toset(var.students)
-  content  = join("\n", [for i in google_compute_instance.node.* : i.network_interface.0.access_config.0.nat_ip if i.labels.student == each.value])
+  content  = join("\n", [for i in values(google_compute_instance.node).* : i.network_interface.0.access_config.0.nat_ip if i.labels.student == each.value])
   filename = "${path.cwd}/ips/${each.value}"
 }
