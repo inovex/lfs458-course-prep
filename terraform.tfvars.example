@@ -2,3 +2,5 @@ project = "project"
 region = "region"
 machine_type = "n1-standard-2"
 students = ["student1"]
+course_type = "lsf458"
+instances = ["master", "node"]

@@ -9,3 +9,11 @@ variable network {
 variable machine_type {
   type = string
 }
+
+variable "instances" {
+  type = list(string)
+}
+
+variable "course_type" {
+  type = string
+}
