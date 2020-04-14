@@ -13,7 +13,7 @@ This terraform script will create the following resources:
 - terraform (`v0.12.7`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - GCP Account
-    * Every student requires 10 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
+  - Every student requires 10 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
 
 ## Preparation
 
@@ -24,6 +24,8 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 Now fill in all the required variables (e.g. your student names).
+If you want to also send mails with the provided Python script add all information to `mail_info.yaml` in the `mail` folder.
+The student list can be read from the yaml file with the following command: `yq r ./mail/mail_info.yaml 'attendees.[*].Short' -c -j`.
 
 ## Run terraform
 
@@ -58,7 +60,11 @@ cd mail
 pip install -r requirements.txt
 ```
 
-Adjust the files under `mail`.
+Adjust the files under `mail`:
+
+- Add all your attendees to the `mail_info.yaml` file
+- Adjust the mail text in `mail_template.txt`
+
 Finally send the mails and thee attachments with: `python3 send_mails.py`
 
 ## Clean up
