@@ -1,6 +1,8 @@
 project = "project"
 region = "region"
-machine_type = "n1-standard-2"
+machine_type = "m4.large"
 students = ["student1"]
-course_type = "lsf458"
+course_type = "lfs458"
 instances = ["master", "node"]
+dns_domain = ""
+network_range = "172.128.0.0/24"

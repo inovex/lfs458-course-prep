@@ -1,12 +1,10 @@
 provider "tls" {
-  version = "~> 2.1.0"
+  version = "~> 2.1.1"
 }
 
 provider "local" {
-  version = "~> 1.3.0"
+  version = "~> 1.4.0"
 }
-
-data "google_compute_zones" "available" {}
 
 locals {
   student_instances = toset([for i in setproduct(var.students, var.instances) : format("%s-%s", i[0], i[1])])
@@ -28,54 +26,78 @@ resource "local_file" "private_key_pem" {
   }
 }
 
+data "template_file" "instance" {
+  for_each = toset(var.students)
+  template = file("${path.module}/cloudinit.yaml")
+  vars = {
+    DEFAULT_USER = "student"
+    SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+  }
+}
+
 // We iterate over the product of students * instances e.g.
 // -> student0-master, student0-node and so on.
 // We use for_each here becase count would destroy machines if we change the number of instances
-resource "google_compute_instance" "node" {
-  for_each       = local.student_instances
-  name           = each.value
-  machine_type   = var.machine_type
-  zone           = data.google_compute_zones.available.names[0]
-  can_ip_forward = "true"
+resource "openstack_compute_instance_v2" "instance" {
+  for_each        = local.student_instances
+  name            = each.value
+  flavor_name     = var.machine_type
+  key_pair        = "jscheuermann_keypair"
+  security_groups = var.sec_groups
+  user_data       = data.template_file.instance[split("-", each.value)[0]].rendered
 
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-1804-lts"
-    }
+  tags = [
+    split("-", each.value)[0],
+    var.course_type,
+    format("trainer-%s", var.trainer)
+  ]
+
+  block_device {
+    uuid                  = data.openstack_images_image_v2.ubuntu.id
+    source_type           = "image"
+    volume_size           = 10
+    boot_index            = 0
+    destination_type      = "volume"
+    delete_on_termination = true
   }
 
-  network_interface {
-    network = var.network
-
-    access_config {
-      // Ephemeral IP
-    }
+  network {
+    uuid = var.network
   }
 
-  metadata_startup_script = <<EOF
-  apt-get update && apt-get install -y python jq
-  modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
-  echo -ne 'filetype plugin indent on\nset expandtab\nset tabstop=2\nset softtabstop=2\nset shiftwidth=2\nset softtabstop=2\n' > /home/student/.vimrc
-  echo 'alias tailf="tail -f"' >> /home/student/.bashrc
-  touch /home/student/.rnd"
-EOF
-
-  metadata = {
-    ssh-keys = "student:${trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)} student"
+  lifecycle {
+    create_before_destroy = true
   }
+}
 
-  service_account {
-    scopes = []
-  }
+resource "openstack_networking_floatingip_v2" "instance" {
+  for_each = local.student_instances
+  pool     = data.openstack_networking_network_v2.public.name
+  tags = [
+    split("-", each.value)[0],
+    var.course_type,
+    format("trainer-%s", var.trainer)
+  ]
+}
 
-  labels = {
-    environment = var.course_type
-    student     = split("-", each.value)[0]
-  }
+resource "openstack_compute_floatingip_associate_v2" "instance" {
+  for_each    = local.student_instances
+  floating_ip = openstack_networking_floatingip_v2.instance[each.value].address
+  instance_id = openstack_compute_instance_v2.instance[each.value].id
+}
+
+resource "openstack_dns_recordset_v2" "training-lf-kubernetes" {
+  for_each    = local.student_instances
+  zone_id     = var.zone_id
+  name        = "${each.value}.${var.dns_domain}"
+  description = "record for training-lf-kubernetes"
+  ttl         = 3000
+  type        = "A"
+  records     = [openstack_networking_floatingip_v2.instance[each.value].address]
 }
 
 resource "local_file" "public_ips" {
   for_each = toset(var.students)
-  content  = join("\n", [for i in values(google_compute_instance.node).* : i.network_interface.0.access_config.0.nat_ip if i.labels.student == each.value])
+  content  = join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : i.address if contains(i.tags, each.value)])
   filename = "${path.cwd}/ips/${each.value}"
 }
