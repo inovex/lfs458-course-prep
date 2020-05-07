@@ -42,7 +42,6 @@ resource "openstack_compute_instance_v2" "instance" {
   for_each        = local.student_instances
   name            = each.value
   flavor_name     = var.machine_type
-  key_pair        = "jscheuermann_keypair"
   security_groups = var.sec_groups
   user_data       = data.template_file.instance[split("-", each.value)[0]].rendered
 
