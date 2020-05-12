@@ -97,6 +97,8 @@ resource "openstack_dns_recordset_v2" "training-lf-kubernetes" {
 
 resource "local_file" "public_ips" {
   for_each = toset(var.students)
-  content  = join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : i.address if contains(i.tags, each.value)])
+  // The format is required to end the file with a \n
+  // otherwise we have a non POSIX compliant file
+  content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : i.address if contains(i.tags, each.value)]))
   filename = "${path.cwd}/ips/${each.value}"
 }

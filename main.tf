@@ -34,6 +34,6 @@ resource "null_resource" "cluster" {
   }
 
   provisioner "local-exec" {
-    command = "./create_package.sh"
+    command = "./scripts/create_package.sh"
   }
 }

@@ -5,7 +5,7 @@ This terraform script will create the following resources:
 - Openstack network
 - Openstack security group rules
 - For each student two (or five) Openstack instances with a public IP (the public ips are stored under `ips`)
-- For each student an individual ssh keypair will be generated (and be stored under `keys`)
+- For each student an individual ssh key pair will be generated (and be stored under `keys`)
 - For each student an zip file will be created (and stored under `packages`)
 
 If you look for the GCP terraform configuration, take a look at the folder `gcp_setup`.
@@ -33,6 +33,8 @@ The student list can be read from the yaml file with the following command: `yq 
 In the first step we need to initialize all the modules and providers:
 
 ```bash
+# Otherwise the project from OS_CLOUD will be used
+unset OS_CLOUD
 terraform init
 ```
 
