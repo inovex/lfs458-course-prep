@@ -1,0 +1,32 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - python
+  - jq
+  - tmate
+runcmd:
+  - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+system_info:
+  default_user:
+    name: ${DEFAULT_USER}
+ssh_authorized_keys:
+  - ${SSH_PUB_KEY}
+users:
+  - name: ${DEFAULT_USER}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${SSH_PUB_KEY}
+write_files:
+  - path: "/etc/vim/vimrc.local"
+    permissions: "0744"
+    content: |
+      filetype plugin indent on
+      set expandtab
+      set tabstop=2
+      set softtabstop=2
+      set shiftwidth=2
+      set softtabstop=2

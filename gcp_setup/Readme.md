@@ -2,19 +2,18 @@
 
 This terraform script will create the following resources:
 
-- Openstack network
-- Openstack security group rules
-- For each student two (or five) Openstack instances with a public IP (the public ips are stored under `ips`)
-- For each student an individual ssh keypair will be generated (and be stored under `keys`)
+- GCP VPC
+- GCP Firewall rule
+- For each student two GCP instances with a public IP (the public ips are stored under `ips`)
+- For each student an indiviual ssh keypair will be generated (and be stored under `keys`)
 - For each student an zip file will be created (and stored under `packages`)
-
-If you look for the GCP terraform configuration, take a look at the folder `gcp_setup`.
 
 ## Prerequisite
 
 - terraform (`v0.12.7`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
-- Openstack Account
+- GCP Account
+  - Every student requires 10 vCPUs and 5 public IP addresses. You will run into your quotas very quickly. [Raise GCP quotas process](https://cloud.google.com/compute/quotas#requesting_additional_quota).
 
 ## Preparation
 
@@ -36,8 +35,8 @@ In the first step we need to initialize all the modules and providers:
 terraform init
 ```
 
-See [here](https://docs.openstack.org/openstacksdk/latest/user/guides/connect_from_config.html) how to setup a `clouds.yaml` for Openstack and terraform.
-Ensure that the `OS_CLOUD` environment variable is unset otherwise the value of this environment variable will be used to located the cloud config.
+See [here](https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform) how to setup GCP and terraform
+
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 
 ### Run in Docker
@@ -46,8 +45,8 @@ The provided dockerfile set up a system with all required software. To deploy th
 
 ```bash
 docker build -t lfs458-prep
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep init
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep apply
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep init
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep apply
 ```
 
 ## Sending Mails
@@ -77,7 +76,7 @@ In order to clean up everything just run: `terraform destroy`
 In order to clean up everything using the docker setup, run:
 
 ```bash
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
+docker run -it -u "$(id -u):$(id -g)" --rm -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
 ```
 
 ### Save Homes

@@ -1,44 +1,30 @@
 terraform {
   required_version = "~>0.12.7"
+
+  required_providers {
+    openstack = ">= 1.28"
+  }
 }
 
-provider "google" {
-  version     = "~> v2.13.0"
-  credentials = file("account.json")
-  project     = var.project
-  region      = var.region
+provider "openstack" {
+  cloud = var.cloud
 }
 
 provider "null" {
   version = "~> 2.1"
 }
 
-resource "google_compute_network" "vpc_network" {
-  name                    = "lfs458-network"
-  auto_create_subnetworks = "true"
-  timeouts {
-    create = "15m"
-    update = "15m"
-    delete = "15m"
-  }
-}
-
-resource "google_compute_firewall" "allow_all" {
-  name    = "allow-all"
-  network = google_compute_network.vpc_network.name
-
-  allow {
-    protocol = "all"
-  }
-}
-
 module "student_workspace" {
   source       = "./modules/student_workspace"
   students     = var.students
   instances    = var.instances
-  network      = google_compute_network.vpc_network.name
+  network      = openstack_networking_network_v2.network.id
   machine_type = var.machine_type
   course_type  = var.course_type
+  trainer      = var.trainer
+  sec_groups   = [openstack_networking_secgroup_v2.sec.name]
+  zone_id      = openstack_dns_zone_v2.project-zone.id
+  dns_domain   = var.dns_domain
 }
 
 resource "null_resource" "cluster" {

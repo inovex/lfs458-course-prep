@@ -1,9 +1,6 @@
-variable "region" {
-  type = string
-}
-
-variable "project" {
-  type = string
+variable "cloud" {
+  description = "credentials to obtain from ~/.config/openstack/clouds.yaml"
+  default     = "training-lf-kubernetes"
 }
 
 variable "machine_type" {
@@ -24,4 +21,17 @@ variable "instances" {
 variable "course_type" {
   type    = string
   default = "lfs458"
+}
+
+variable "trainer" {
+  description = "Trainer name which holds the course"
+  type        = string
+}
+
+variable "dns_domain" {
+  description = "dns zone to create within openstack"
+}
+
+variable "network_range" {
+  description = "network range for the internal vpc"
 }

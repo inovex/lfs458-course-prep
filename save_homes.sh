@@ -25,8 +25,8 @@ function download() {
    rm -rf ${tmpDir}
 }
 
-for student in $(find ips -type f -exec basename {} \;) ; 
-do 
+for student in $(find ips -type f -exec basename {} \;) ;
+do
    download ${student} &
 done
 
