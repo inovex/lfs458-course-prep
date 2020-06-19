@@ -85,16 +85,6 @@ resource "openstack_compute_floatingip_associate_v2" "instance" {
   instance_id = openstack_compute_instance_v2.instance[each.value].id
 }
 
-resource "openstack_dns_recordset_v2" "training-lf-kubernetes" {
-  for_each    = local.student_instances
-  zone_id     = var.zone_id
-  name        = "${each.value}.${var.dns_domain}"
-  description = "record for training-lf-kubernetes"
-  ttl         = 3000
-  type        = "A"
-  records     = [openstack_networking_floatingip_v2.instance[each.value].address]
-}
-
 resource "local_file" "public_ips" {
   for_each = toset(var.students)
   // The format is required to end the file with a \n

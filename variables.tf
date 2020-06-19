@@ -28,10 +28,6 @@ variable "trainer" {
   type        = string
 }
 
-variable "dns_domain" {
-  description = "dns zone to create within openstack"
-}
-
 variable "network_range" {
   description = "network range for the internal vpc"
 }

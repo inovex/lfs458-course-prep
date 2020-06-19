@@ -46,10 +46,3 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_node_rule_allow_insid
   remote_group_id   = openstack_networking_secgroup_v2.sec.id
   security_group_id = openstack_networking_secgroup_v2.sec.id
 }
-
-resource "openstack_dns_zone_v2" "project-zone" {
-  name  = var.dns_domain
-  email = "hostmaster@inovex.io"
-  type  = "PRIMARY"
-  ttl   = 60
-}
