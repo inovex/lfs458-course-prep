@@ -25,11 +25,3 @@ variable "trainer" {
 variable "sec_groups" {
   type = list(string)
 }
-
-variable "zone_id" {
-  type = string
-}
-
-variable "dns_domain" {
-  description = "dns zone to create within openstack"
-}

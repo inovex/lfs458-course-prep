@@ -23,8 +23,6 @@ module "student_workspace" {
   course_type  = var.course_type
   trainer      = var.trainer
   sec_groups   = [openstack_networking_secgroup_v2.sec.name]
-  zone_id      = openstack_dns_zone_v2.project-zone.id
-  dns_domain   = var.dns_domain
 }
 
 resource "null_resource" "cluster" {
