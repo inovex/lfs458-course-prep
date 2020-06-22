@@ -12,6 +12,6 @@ do
     while read -r ip;
     do
         echo "Validate $ip for student $(basename "$student")"
-        ssh -q -n -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/$(basename "$student")" "student@$ip" -- echo success
-    done < "$student"
+        ssh -q -n -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/$(basename "${student%.*}")" "student@$ip" -- echo success
+    done < "${student}"
 done
