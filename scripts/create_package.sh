@@ -12,7 +12,8 @@ mkdir -p "${DEST}"
 for f in ips/*;
 do
   FILENAME="$(basename "$f")"
+  FILENAME=${FILENAME%.*}
   echo "Create package for ${FILENAME}"
   puttygen "./keys/${FILENAME}" -O private -o "keys/${FILENAME}.ppk"
-  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}"
+  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}.txt"
 done

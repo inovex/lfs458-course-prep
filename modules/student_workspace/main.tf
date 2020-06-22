@@ -90,5 +90,5 @@ resource "local_file" "public_ips" {
   // The format is required to end the file with a \n
   // otherwise we have a non POSIX compliant file
   content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : i.address if contains(i.tags, each.value)]))
-  filename = "${path.cwd}/ips/${each.value}"
+  filename = "${path.cwd}/ips/${each.value}.txt"
 }
