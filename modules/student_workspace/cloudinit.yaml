@@ -7,6 +7,11 @@ packages:
   - tmate
 runcmd:
   - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+  # Disable the annoying motd
+  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
+  - chmod -x /etc/update-motd.d/80-livepatch
+  - chmod -x /etc/update-motd.d/10-help-text
+
 system_info:
   default_user:
     name: ${DEFAULT_USER}
