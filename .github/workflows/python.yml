@@ -1,0 +1,17 @@
+name: 'Python code check GitHub Action'
+on:
+  pull_request:
+    paths:
+    - '**.py'
+jobs:
+  python:
+    name: 'Python'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+      - name: 'Black Code Formatter'
+        uses: lgeiger/black-action@v1.0.1
+        with:
+          args: ". --check"
+
