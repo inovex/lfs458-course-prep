@@ -126,7 +126,7 @@ def main():
             sender,
             attendee["Mail"],
             subject,
-            text_template.format(**attendee),
+            text_template.format(**mail_info, **attendee),
             "../packages/{}.zip".format(attendee["Short"]),
         )
         send_message(service, "me", msg)
