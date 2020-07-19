@@ -37,7 +37,7 @@ data "template_file" "instance" {
 
 // We iterate over the product of students * instances e.g.
 // -> student0-master, student0-node and so on.
-// We use for_each here becase count would destroy machines if we change the number of instances
+// We use for_each here because count would destroy machines if we change the number of instances
 resource "openstack_compute_instance_v2" "instance" {
   for_each        = local.student_instances
   name            = each.value
