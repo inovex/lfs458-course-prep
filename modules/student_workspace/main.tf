@@ -74,8 +74,9 @@ resource "openstack_compute_instance_v2" "instance" {
 }
 
 resource "openstack_networking_floatingip_v2" "instance" {
-  for_each = local.student_instances
-  pool     = data.openstack_networking_network_v2.public.name
+  for_each    = local.student_instances
+  pool        = data.openstack_networking_network_v2.public.name
+  description = each.value
   tags = [
     split("-", each.value)[0],
     var.course_type,
@@ -93,6 +94,6 @@ resource "local_file" "public_ips" {
   for_each = toset(var.students)
   // The format is required to end the file with a \n
   // otherwise we have a non POSIX compliant file
-  content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : i.address if contains(i.tags, each.value)]))
+  content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : format("%s: %s", i.description, i.address) if contains(i.tags, each.value)]))
   filename = "${path.cwd}/ips/${each.value}.txt"
 }
