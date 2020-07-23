@@ -66,6 +66,10 @@ resource "openstack_compute_instance_v2" "instance" {
 
   lifecycle {
     create_before_destroy = true
+    // Ignore newer images during a training session
+    ignore_changes = [
+      block_device,
+    ]
   }
 }
 
