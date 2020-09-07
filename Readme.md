@@ -12,7 +12,7 @@ If you look for the GCP terraform configuration, take a look at the folder `gcp_
 
 ## Prerequisite
 
-- terraform (`v0.12.7`)
+- terraform (`v0.12.+`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - Openstack Account
 
@@ -41,16 +41,7 @@ terraform init
 See [here](https://docs.openstack.org/openstacksdk/latest/user/guides/connect_from_config.html) how to setup a `clouds.yaml` for Openstack and terraform.
 Ensure that the `OS_CLOUD` environment variable is unset otherwise the value of this environment variable will be used to located the cloud config.
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
-
-### Run in Docker
-
-The provided dockerfile set up a system with all required software. To deploy the training environment run:
-
-```bash
-docker build -t lfs458-prep
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep init
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep apply
-```
+After the creation of the instances run `./scripts/check_connection.sh` to check that all instances are reachable with the ssh key.
 
 ## Sending Mails
 
@@ -72,15 +63,7 @@ Finally send the mails and thee attachments with: `python3 send_mails.py`
 
 ## Clean up
 
-In order to clean up everything just run: `terraform destroy` and `rm ./keys/*.ppk`.
-
-### Cleanup in Docker
-
-In order to clean up everything using the docker setup, run:
-
-```bash
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep terraform destroy and `rm ./keys/*.ppk`.
-```
+In order to clean up everything just run: `terraform destroy && rm ./keys/*.ppk`
 
 ### Save Homes
 
