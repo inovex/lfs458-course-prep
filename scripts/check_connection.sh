@@ -9,9 +9,10 @@ for student in "${scriptLocation}"/../ips/*;
 do
     # We can ignore this warning here since we never write to this file
     # shellcheck disable=SC2094
-    while read -r ip;
+    while read -r entry;
     do
-        echo "Validate $ip for student $(basename "$student")"
+        echo "Validate ${entry}"
+        ip=$(echo "${entry}" | awk -F' ' '{print $2}')
         if ! ssh -q -n -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/$(basename "${student%.*}")" "student@$ip" -- echo success;
         then
             echo "error checking $ip"

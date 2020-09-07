@@ -32,5 +32,5 @@ menu_from_array "${students[@]}"
 scriptLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # fetch first ip address
-ip=$(head -n 1 "${scriptLocation}/../ips/${student}.txt")
+ip=$(head -n 1 "${scriptLocation}/../ips/${student}.txt" | awk -F' ' '{print $2}')
 ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/${student}" "student@${ip}"

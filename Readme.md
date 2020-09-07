@@ -72,14 +72,14 @@ Finally send the mails and thee attachments with: `python3 send_mails.py`
 
 ## Clean up
 
-In order to clean up everything just run: `terraform destroy`
+In order to clean up everything just run: `terraform destroy` and `rm ./keys/*.ppk`.
 
 ### Cleanup in Docker
 
 In order to clean up everything using the docker setup, run:
 
 ```bash
-docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep terraform destroy
+docker run -it -u "$(id -u):$(id -g)" --rm -v ${HOME}/.config/openstack:/etc/openstack -v $(pwd):/wd -w /wd lfs458-prep terraform destroy and `rm ./keys/*.ppk`.
 ```
 
 ### Save Homes
