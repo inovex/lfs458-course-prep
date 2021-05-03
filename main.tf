@@ -1,17 +1,5 @@
-terraform {
-  required_version = "~>0.12.7"
-
-  required_providers {
-    openstack = ">= 1.28"
-  }
-}
-
 provider "openstack" {
   cloud = var.cloud
-}
-
-provider "null" {
-  version = "~> 2.1"
 }
 
 module "student_workspace" {
