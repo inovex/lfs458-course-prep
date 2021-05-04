@@ -1,11 +1,3 @@
-provider "tls" {
-  version = "~> 2.1.1"
-}
-
-provider "local" {
-  version = "~> 1.4.0"
-}
-
 locals {
   student_instances = toset([for i in setproduct(var.students, var.instances) : format("%s-%s", i[0], i[1])])
 }
