@@ -8,26 +8,33 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.12.18
       - name: 'Terraform Format'
-        uses: hashicorp/terraform-github-actions@v0.6.3
-        with:
-          tf_actions_version: 0.12.18
-          tf_actions_subcommand: 'fmt'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
       - name: 'Terraform Init'
-        uses: hashicorp/terraform-github-actions@v0.6.3
-        with:
-          tf_actions_version: 0.12.18
-          tf_actions_subcommand: 'init'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create dummy account.json file
-        run: touch account.json
+        id: init
+        run: terraform init
       - name: 'Terraform Validate'
-        uses: hashicorp/terraform-github-actions@v0.6.3
+        id: validate
+        run: terraform validate -no-color
+      - uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
         with:
-          tf_actions_version: 0.12.18
-          tf_actions_subcommand: 'validate'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖${{ steps.validate.outputs.stdout }}
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
