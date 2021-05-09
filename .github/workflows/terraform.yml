@@ -1,24 +1,24 @@
-name: 'Terraform GitHub Actions'
+name: "Terraform GitHub Actions"
 on:
   - pull_request
 jobs:
   terraform:
-    name: 'Terraform'
+    name: "Terraform"
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout'
+      - name: "Checkout"
         uses: actions/checkout@v2
       - uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 0.12.18
-      - name: 'Terraform Format'
+          terraform_version: 0.15.1
+      - name: "Terraform Format"
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
-      - name: 'Terraform Init'
+      - name: "Terraform Init"
         id: init
         run: terraform init
-      - name: 'Terraform Validate'
+      - name: "Terraform Validate"
         id: validate
         run: terraform validate -no-color
       - uses: actions/github-script@0.9.0
