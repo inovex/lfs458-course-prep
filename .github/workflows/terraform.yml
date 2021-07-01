@@ -13,7 +13,7 @@ jobs:
           terraform_version: 1.0.1
       - name: "Terraform Format"
         id: fmt
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
         continue-on-error: true
       - name: "Terraform Init"
         id: init
