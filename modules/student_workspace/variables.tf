@@ -1,12 +1,12 @@
-variable students {
+variable "students" {
   type = list(string)
 }
 
-variable network {
+variable "network" {
   type = string
 }
 
-variable machine_type {
+variable "machine_type" {
   type = string
 }
 
