@@ -121,7 +121,7 @@ def main():
         text_template = temp.read()
 
     for attendee in attendees:
-        print("Send mail to: {}".format(attendee["Surname"]))
+        print("Send mail to: {}".format(attendee["Mail"]))
         msg = create_message_with_attachment(
             sender,
             attendee["Mail"],
