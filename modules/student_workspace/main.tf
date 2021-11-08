@@ -18,15 +18,6 @@ resource "local_file" "private_key_pem" {
   }
 }
 
-data "template_file" "instance" {
-  for_each = toset(var.students)
-  template = file("${path.module}/cloudinit.yaml")
-  vars = {
-    DEFAULT_USER = "student"
-    SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
-  }
-}
-
 // We iterate over the product of students * instances e.g.
 // -> student0-master, student0-node and so on.
 // We use for_each here because count would destroy machines if we change the number of instances
@@ -35,7 +26,13 @@ resource "openstack_compute_instance_v2" "instance" {
   name            = each.value
   flavor_name     = var.machine_type
   security_groups = var.sec_groups
-  user_data       = data.template_file.instance[split("-", each.value)[0]].rendered
+  user_data = templatefile(
+    "${path.module}/cloudinit.yaml",
+    {
+      DEFAULT_USER = "student"
+      SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+    }
+  )
 
   tags = [
     split("-", each.value)[0],
