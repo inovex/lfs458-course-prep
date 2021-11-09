@@ -1,9 +1,26 @@
-provider "tls" {
-  version = "~> 2.1.0"
-}
+terraform {
+  required_version = "~>1"
+  required_providers {
+    google = {
+      source = "google"
+      version = "~> 4.0.0"
+    }
 
-provider "local" {
-  version = "~> 1.3.0"
+    null = {
+      source = "null"
+      version = "~> 3.1"
+    }
+
+    tls = {
+      source = "tls"
+      version = "~> 3.1.0"
+    }
+
+    local = {
+      source = "local"
+      version = "~> 2.1.0"
+    }
+  }
 }
 
 data "google_compute_zones" "available" {}
