@@ -69,13 +69,7 @@ resource "google_compute_instance" "node" {
     }
   }
 
-  metadata_startup_script = <<EOF
-  apt-get update && apt-get install -y python jq
-  modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
-  echo -ne 'filetype plugin indent on\nset expandtab\nset tabstop=2\nset softtabstop=2\nset shiftwidth=2\nset softtabstop=2\n' > /home/student/.vimrc
-  echo 'alias tailf="tail -f"' >> /home/student/.bashrc
-  touch /home/student/.rnd"
-EOF
+  metadata_startup_script = file("${path.module}/cloudinit.yaml")
 
   metadata = {
     ssh-keys = "student:${trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)} student"

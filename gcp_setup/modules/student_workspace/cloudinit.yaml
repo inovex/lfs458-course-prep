@@ -1,0 +1,28 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - python
+  - jq
+  - tmate
+runcmd:
+  - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+  # Disable the annoying motd
+  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
+  - chmod -x /etc/update-motd.d/80-livepatch
+  - chmod -x /etc/update-motd.d/10-help-text
+
+write_files:
+  - path: "/etc/vim/vimrc.local"
+    permissions: "0744"
+    content: |
+      filetype plugin indent on
+      set expandtab
+      set tabstop=2
+      set softtabstop=2
+      set shiftwidth=2
+      set softtabstop=2
+
+power_state:
+  mode: reboot
+  timeout: 30
