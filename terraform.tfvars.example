@@ -3,5 +3,6 @@ machine_type = "m4.large"
 trainer = "trainer-name"
 students = ["student1"]
 course_type = "lfs458"
-instances = ["master", "node"]
+instances = ["cp", "worker"]
+# instances = ["cp", "secondcp", "thirdcp", "ha-proxy", "worker"]
 network_range = "172.128.0.0/24"
