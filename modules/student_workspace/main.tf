@@ -58,6 +58,7 @@ resource "openstack_compute_instance_v2" "instance" {
     // Ignore newer images during a training session
     ignore_changes = [
       block_device,
+      user_data
     ]
   }
 }
