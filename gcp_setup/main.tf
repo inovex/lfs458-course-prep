@@ -47,6 +47,7 @@ resource "google_compute_firewall" "allow_all" {
   allow {
     protocol = "all"
   }
+  source_ranges = [ "0.0.0.0/0" ]
 }
 
 module "student_workspace" {
