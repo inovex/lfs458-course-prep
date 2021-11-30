@@ -1,9 +1,0 @@
-#cloud-config
-merge_how:
- - name: list
-   settings: [append]
-
-write_files:
-  %{ for name, keys in SSH_KEYS }
-  - ${jsonencode ({"content"=keys[0],"path"="/home/student/keys/${name}","permissions"="0600"})}
-  %{ endfor }

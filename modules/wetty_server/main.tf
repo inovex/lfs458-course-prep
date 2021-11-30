@@ -16,9 +16,9 @@ locals {
   # the ellipsis (...) allows us to have values merged by resulting key,
   # meaning we have a list of SSH Keys (currently always the same) per student
   student_ssh_keys = {
-    for instance, info in var.instances:
-      info["student"] => trimspace(info["ssh_key"])...
-    }
+    for instance, info in var.instances :
+    info["student"] => trimspace(info["ssh_key"])...
+  }
 }
 
 data "cloudinit_config" "config" {
@@ -34,7 +34,6 @@ data "cloudinit_config" "config" {
         DEFAULT_USER = "student"
         SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key.public_key_openssh)
         INSTANCES    = var.instances
-        SSH_KEYS = local.student_ssh_keys
       }
     )
   }
@@ -90,9 +89,103 @@ resource "openstack_compute_floatingip_associate_v2" "wetty_server" {
   instance_id = openstack_compute_instance_v2.wetty_server.id
 }
 
-resource "local_file" "public_ips" {
-  // The format is required to end the file with a \n
-  // otherwise we have a non POSIX compliant file
-  content  = format("%s\n", openstack_networking_floatingip_v2.wetty_server.address)
-  filename = "${path.cwd}/ips/wetty_server.txt"
+# resource "local_file" "public_ips" {
+#   // The format is required to end the file with a \n
+#   // otherwise we have a non POSIX compliant file
+#   content  = format("%s\n", openstack_networking_floatingip_v2.wetty_server.address)
+#   filename = "${path.cwd}/ips/wetty_server.txt"
+# }
+
+resource "null_resource" "setup_keys_dir" {
+  triggers = {
+    instance = openstack_compute_instance_v2.wetty_server.id
+  }
+
+  depends_on = [
+    openstack_compute_floatingip_associate_v2.wetty_server
+  ]
+
+  provisioner "remote-exec" {
+
+    inline = [
+      "mkdir -p /home/student/keys/"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+}
+
+resource "null_resource" "student_ssh_keys" {
+
+  for_each = local.student_ssh_keys
+
+  triggers = {
+    instance = openstack_compute_instance_v2.wetty_server.id
+  }
+
+  depends_on = [
+    openstack_compute_floatingip_associate_v2.wetty_server,
+    null_resource.setup_keys_dir
+  ]
+
+  provisioner "file" {
+    content     = each.value[0]
+    destination = "/home/student/keys/${each.key}"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+}
+
+resource "null_resource" "configs" {
+  triggers = {
+    instance = openstack_compute_instance_v2.wetty_server.id
+  }
+
+  depends_on = [
+    openstack_compute_floatingip_associate_v2.wetty_server
+  ]
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/nginx.conf",
+      {
+        INSTANCES = var.instances
+      }
+    )
+    destination = "/home/student/nginx.conf"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/docker-compose.yaml",
+      {
+        INSTANCES = var.instances
+      }
+    )
+    destination = "/home/student/docker-compose.yaml"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
 }
