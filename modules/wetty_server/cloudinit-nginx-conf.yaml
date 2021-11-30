@@ -1,0 +1,32 @@
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+
+write_files:
+  - path: "/home/student/nginx.conf"
+    permissions: "0744"
+    content: |
+      events { worker_connections 1024; }
+
+      http {
+
+        server {
+          listen 80;
+
+        %{ for name, instance_info in INSTANCES }
+          location ^~ /${name} {
+            proxy_pass http://wetty-mbischoff-cp:3000/${name};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 43200000;
+
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-NginX-Proxy true;
+          }
+        %{ endfor ~}
+        }
+      }

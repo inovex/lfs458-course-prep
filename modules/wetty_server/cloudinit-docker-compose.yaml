@@ -1,0 +1,25 @@
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+
+write_files:
+  - path: "/home/student/docker-compose.yml"
+    permissions: "0744"
+    content: |
+      version: '3'
+
+      services:
+        nginx:
+          image: nginx:1.21.4
+          volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+          ports:
+            - "80:80"
+        %{ for name, instance_info in INSTANCES }
+        wetty-${name}:
+          image: wettyoss/wetty # FIXME: pin?
+          volumes:
+            - ./keys/${instance_info["student"]}:/keys/key
+          command: --ssh-host=${instance_info["ip"]} --ssh-auth=publickey --ssh-user=student --ssh-key /keys/key --base=/${name}
+        %{ endfor ~}
