@@ -21,29 +21,18 @@ locals {
   }
 }
 
-data "cloudinit_config" "config" {
-  gzip          = true
-  base64_encode = true
-
-  part {
-    filename     = "cloudinit.yaml"
-    content_type = "text/cloud-config"
-    content = templatefile(
+resource "openstack_compute_instance_v2" "wetty_server" {
+  name            = "wetty-server-${var.course_type}-${var.trainer}"
+  flavor_name     = var.machine_type
+  security_groups = var.sec_groups
+  user_data       = templatefile(
       "${path.module}/cloudinit.yaml",
       {
         DEFAULT_USER = "student"
         SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key.public_key_openssh)
         INSTANCES    = var.instances
       }
-    )
-  }
-}
-
-resource "openstack_compute_instance_v2" "wetty_server" {
-  name            = "wetty-server-${var.course_type}-${var.trainer}"
-  flavor_name     = var.machine_type
-  security_groups = var.sec_groups
-  user_data       = data.cloudinit_config.config.rendered
+  )
 
   tags = [
     "wetty-server",
@@ -89,14 +78,21 @@ resource "openstack_compute_floatingip_associate_v2" "wetty_server" {
   instance_id = openstack_compute_instance_v2.wetty_server.id
 }
 
-# resource "local_file" "public_ips" {
-#   // The format is required to end the file with a \n
-#   // otherwise we have a non POSIX compliant file
-#   content  = format("%s\n", openstack_networking_floatingip_v2.wetty_server.address)
-#   filename = "${path.cwd}/ips/wetty_server.txt"
-# }
+resource "random_password" "student_password" {
+  for_each = local.student_ssh_keys
 
-resource "null_resource" "setup_keys_dir" {
+  length = 55
+  special = true
+  override_special = "_%@"
+}
+
+resource "local_file" "student_password" {
+  for_each = random_password.student_password
+  content  = each.value.result
+  filename = "${path.cwd}/passwords/${each.key}"
+}
+
+resource "null_resource" "setup_dirs" {
   triggers = {
     instance = openstack_compute_instance_v2.wetty_server.id
   }
@@ -108,7 +104,7 @@ resource "null_resource" "setup_keys_dir" {
   provisioner "remote-exec" {
 
     inline = [
-      "mkdir -p /home/student/keys/"
+      "mkdir -p /home/student/keys/ /home/student/htpasswd/"
     ]
 
     connection {
@@ -120,7 +116,7 @@ resource "null_resource" "setup_keys_dir" {
   }
 }
 
-resource "null_resource" "student_ssh_keys" {
+resource "null_resource" "student_credentials" {
 
   for_each = local.student_ssh_keys
 
@@ -130,12 +126,24 @@ resource "null_resource" "student_ssh_keys" {
 
   depends_on = [
     openstack_compute_floatingip_associate_v2.wetty_server,
-    null_resource.setup_keys_dir
+    null_resource.setup_dirs
   ]
 
   provisioner "file" {
     content     = each.value[0]
     destination = "/home/student/keys/${each.key}"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+
+  provisioner "file" {
+    content     = "${each.key}:${bcrypt(random_password.student_password[each.key].result)}"
+    destination = "/home/student/htpasswd/${each.key}"
 
     connection {
       type        = "ssh"

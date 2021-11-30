@@ -4,6 +4,7 @@ package_upgrade: true
 packages:
   - docker.io
   - docker-compose
+  - apache2-utils
 runcmd:
   - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
   # Disable the annoying motd

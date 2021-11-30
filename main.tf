@@ -33,3 +33,7 @@ resource "null_resource" "cluster" {
     command = "./scripts/create_package.sh"
   }
 }
+
+output "wetty_server_address" {
+  value = module.wetty_server.wetty_server_address
+}
