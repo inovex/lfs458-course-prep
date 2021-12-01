@@ -11,6 +11,8 @@ runcmd:
   - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
   - chmod -x /etc/update-motd.d/80-livepatch
   - chmod -x /etc/update-motd.d/10-help-text
+  - systemctl enable docker-compose-wetty
+  - systemctl start docker-compose-wetty
 
 system_info:
   default_user:
@@ -27,3 +29,24 @@ users:
       - ${SSH_PUB_KEY}
 groups:
   - docker
+
+write_files:
+  - path: /etc/systemd/system/docker-compose-wetty.service
+    content: |
+      [Unit]
+      Description=Docker Compose WeTTY Service
+      Requires=docker.service
+      After=docker.service
+
+      [Service]
+      WorkingDirectory=/home/student
+      User=student
+      ExecStart=/usr/bin/docker-compose up
+      ExecStop=/usr/bin/docker-compose down
+      TimeoutStartSec=0
+      Restart=on-failure
+      StartLimitIntervalSec=60
+      StartLimitBurst=3
+
+      [Install]
+      WantedBy=multi-user.target
