@@ -83,7 +83,7 @@ resource "random_password" "student_password" {
 
   length = 55
   special = true
-  override_special = "_%@"
+  override_special = "_-"
 }
 
 resource "local_file" "student_password" {
