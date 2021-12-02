@@ -18,6 +18,10 @@ variable "sec_groups" {
   type = list(string)
 }
 
+variable "dns_domain" {
+ type = string
+}
+
 variable "instances" {
   type = map(object({
     ip      = string,

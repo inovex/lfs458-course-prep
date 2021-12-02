@@ -31,3 +31,8 @@ variable "trainer" {
 variable "network_range" {
   description = "network range for the internal vpc"
 }
+
+variable "dns_domain" {
+  description = "domain for creating DNS records, currently only used for wetty-server"
+  default = "training-lf-kubernetes.fra.ics.inovex.io."
+}

@@ -78,6 +78,17 @@ resource "openstack_compute_floatingip_associate_v2" "wetty_server" {
   instance_id = openstack_compute_instance_v2.wetty_server.id
 }
 
+data "openstack_dns_zone_v2" "terraform" {
+  name = var.dns_domain
+}
+
+resource "openstack_dns_recordset_v2" "wetty" {
+  zone_id     = data.openstack_dns_zone_v2.terraform.id
+  name        = "${openstack_compute_instance_v2.wetty_server.name}.${data.openstack_dns_zone_v2.terraform.name}"
+  type        = "A"
+  records     = [openstack_networking_floatingip_v2.wetty_server.address]
+}
+
 resource "random_password" "student_password" {
   for_each = local.student_ssh_keys
 

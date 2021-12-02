@@ -21,6 +21,7 @@ module "wetty_server" {
   trainer      = var.trainer
   sec_groups   = [openstack_networking_secgroup_v2.sec.name]
   instances    = module.student_workspace.instance_info
+  dns_domain   = var.dns_domain
 }
 
 resource "null_resource" "cluster" {
