@@ -1,0 +1,10 @@
+
+<h1>Wetty-Server</h1>
+
+<p>Below are all the instances, click on an instance to get to the Web TTY.</p>
+
+<ol>
+%{ for name, instance_info in INSTANCES }
+<li><a href="/${name}">${name}</a></li>
+%{ endfor }
+</ol>

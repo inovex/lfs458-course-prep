@@ -5,6 +5,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./htpasswd/:/conf/htpasswd/:ro
+      - ./html/:/usr/share/nginx/html/:ro
     ports:
       - "80:80"
   %{ for name, instance_info in INSTANCES }

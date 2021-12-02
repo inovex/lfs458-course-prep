@@ -115,7 +115,7 @@ resource "null_resource" "setup_dirs" {
   provisioner "remote-exec" {
 
     inline = [
-      "mkdir -p /home/student/keys/ /home/student/htpasswd/"
+      "mkdir -p /home/student/keys/ /home/student/htpasswd/ /home/student/html/"
     ]
 
     connection {
@@ -171,7 +171,8 @@ resource "null_resource" "configs" {
   }
 
   depends_on = [
-    openstack_compute_floatingip_associate_v2.wetty_server
+    openstack_compute_floatingip_associate_v2.wetty_server,
+    null_resource.setup_dirs
   ]
 
   provisioner "file" {
@@ -193,12 +194,46 @@ resource "null_resource" "configs" {
 
   provisioner "file" {
     content = templatefile(
+      "${path.module}/index.html",
+      {
+        INSTANCES = var.instances
+      }
+    )
+    destination = "/home/student/html/index.html"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+
+  provisioner "file" {
+    content = templatefile(
       "${path.module}/docker-compose.yaml",
       {
         INSTANCES = var.instances
       }
     )
     destination = "/home/student/docker-compose.yaml"
+
+    connection {
+      type        = "ssh"
+      user        = "student"
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/.htpasswd",
+      {
+        PASSWORDS = random_password.student_password
+      }
+    )
+    destination = "/home/student/htpasswd/.htpasswd"
 
     connection {
       type        = "ssh"
