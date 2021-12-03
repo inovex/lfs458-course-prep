@@ -84,7 +84,9 @@ data "openstack_dns_zone_v2" "terraform" {
 
 resource "openstack_dns_recordset_v2" "wetty" {
   zone_id = data.openstack_dns_zone_v2.terraform.id
-  name    = "${openstack_compute_instance_v2.wetty_server.name}.${data.openstack_dns_zone_v2.terraform.name}"
+  # name must be <= 64 chars, otherwise certbot will fail
+  name    = "wetty-${var.trainer}.${data.openstack_dns_zone_v2.terraform.name}"
+  ttl     = 300
   type    = "A"
   records = [openstack_networking_floatingip_v2.wetty_server.address]
 }
@@ -115,7 +117,11 @@ resource "null_resource" "setup_dirs" {
   provisioner "remote-exec" {
 
     inline = [
-      "mkdir -p /home/${var.user}/keys/ /home/${var.user}/htpasswd/ /home/${var.user}/html/"
+      "mkdir -p /home/${var.user}/keys/",
+      "mkdir -p /home/${var.user}/htpasswd/",
+      "mkdir -p /home/${var.user}/html/",
+      "mkdir -p /home/${var.user}/data/certbot/conf",
+      "mkdir -p /home/${var.user}/data/certbot/www"
     ]
 
     connection {
@@ -180,6 +186,7 @@ resource "null_resource" "configs" {
       "${path.module}/nginx.conf",
       {
         INSTANCES = var.instances
+        HOST_NAME = trimsuffix(openstack_dns_recordset_v2.wetty.name, ".")
       }
     )
     destination = "/home/${var.user}/nginx.conf"
@@ -213,9 +220,10 @@ resource "null_resource" "configs" {
     content = templatefile(
       "${path.module}/docker-compose.yaml",
       {
-        INSTANCES   = var.instances
-        NGINX_IMAGE = var.nginx_image
-        WETTY_IMAGE = var.wetty_image
+        INSTANCES     = var.instances
+        NGINX_IMAGE   = var.nginx_image
+        CERTBOT_IMAGE = var.certbot_image
+        WETTY_IMAGE   = var.wetty_image
       }
     )
     destination = "/home/${var.user}/docker-compose.yaml"
@@ -230,9 +238,27 @@ resource "null_resource" "configs" {
 
   provisioner "file" {
     content = templatefile(
+      "${path.module}/init-letsencrypt.sh",
+      {
+        HOST_NAME     = trimsuffix(openstack_dns_recordset_v2.wetty.name, ".")
+        TRAINER_EMAIL = var.trainer_email
+      }
+    )
+    destination = "/home/${var.user}/init-letsencrypt.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.user
+      host        = openstack_networking_floatingip_v2.wetty_server.address
+      private_key = tls_private_key.ssh_key.private_key_pem
+    }
+  }
+
+  provisioner "file" {
+    content = templatefile(
       "${path.module}/.htpasswd",
       {
-        PASSWORDS = random_password._password
+        PASSWORDS = random_password.student_password
       }
     )
     destination = "/home/${var.user}/htpasswd/.htpasswd"

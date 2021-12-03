@@ -30,6 +30,10 @@ variable "instances" {
   }))
 }
 
+variable "trainer_email" {
+  type = string
+}
+
 variable "user" {
   type    = string
   default = "student"
@@ -38,6 +42,11 @@ variable "user" {
 variable "nginx_image" {
   type    = string
   default = "nginx:1.21.4"
+}
+
+variable "certbot_image" {
+  type    = string
+  default = "certbot/certbot" # FIXME: Pin?
 }
 
 variable "wetty_image" {

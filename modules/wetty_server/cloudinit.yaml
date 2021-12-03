@@ -41,6 +41,7 @@ write_files:
       [Service]
       WorkingDirectory=/home/${USER}
       User=${USER}
+      ExecStartPre=/bin/bash init-letsencrypt.sh
       ExecStart=/usr/bin/docker-compose up
       ExecStop=/usr/bin/docker-compose down
       TimeoutStartSec=0
