@@ -19,7 +19,7 @@ variable "sec_groups" {
 }
 
 variable "dns_domain" {
- type = string
+  type = string
 }
 
 variable "instances" {
@@ -28,4 +28,19 @@ variable "instances" {
     student = string,
     ssh_key = string
   }))
+}
+
+variable "user" {
+  type    = string
+  default = "student"
+}
+
+variable "nginx_image" {
+  type    = string
+  default = "nginx:1.21.4"
+}
+
+variable "wetty_image" {
+  type    = string
+  default = "wettyoss/wetty" # FIXME: Pin?
 }

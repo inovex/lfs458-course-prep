@@ -25,13 +25,13 @@ resource "openstack_compute_instance_v2" "wetty_server" {
   name            = "wetty-server-${var.course_type}-${var.trainer}"
   flavor_name     = var.machine_type
   security_groups = var.sec_groups
-  user_data       = templatefile(
-      "${path.module}/cloudinit.yaml",
-      {
-        DEFAULT_USER = "student"
-        SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key.public_key_openssh)
-        INSTANCES    = var.instances
-      }
+  user_data = templatefile(
+    "${path.module}/cloudinit.yaml",
+    {
+      USER        = var.user
+      SSH_PUB_KEY = trimspace(tls_private_key.ssh_key.public_key_openssh)
+      INSTANCES   = var.instances
+    }
   )
 
   tags = [
@@ -83,17 +83,17 @@ data "openstack_dns_zone_v2" "terraform" {
 }
 
 resource "openstack_dns_recordset_v2" "wetty" {
-  zone_id     = data.openstack_dns_zone_v2.terraform.id
-  name        = "${openstack_compute_instance_v2.wetty_server.name}.${data.openstack_dns_zone_v2.terraform.name}"
-  type        = "A"
-  records     = [openstack_networking_floatingip_v2.wetty_server.address]
+  zone_id = data.openstack_dns_zone_v2.terraform.id
+  name    = "${openstack_compute_instance_v2.wetty_server.name}.${data.openstack_dns_zone_v2.terraform.name}"
+  type    = "A"
+  records = [openstack_networking_floatingip_v2.wetty_server.address]
 }
 
 resource "random_password" "student_password" {
   for_each = local.student_ssh_keys
 
-  length = 55
-  special = true
+  length           = 55
+  special          = true
   override_special = "_-"
 }
 
@@ -115,12 +115,12 @@ resource "null_resource" "setup_dirs" {
   provisioner "remote-exec" {
 
     inline = [
-      "mkdir -p /home/student/keys/ /home/student/htpasswd/ /home/student/html/"
+      "mkdir -p /home/${var.user}/keys/ /home/${var.user}/htpasswd/ /home/${var.user}/html/"
     ]
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -142,11 +142,11 @@ resource "null_resource" "student_credentials" {
 
   provisioner "file" {
     content     = each.value[0]
-    destination = "/home/student/keys/${each.key}"
+    destination = "/home/${var.user}/keys/${each.key}"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -154,11 +154,11 @@ resource "null_resource" "student_credentials" {
 
   provisioner "file" {
     content     = "${each.key}:${bcrypt(random_password.student_password[each.key].result)}"
-    destination = "/home/student/htpasswd/${each.key}"
+    destination = "/home/${var.user}/htpasswd/${each.key}"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -182,11 +182,11 @@ resource "null_resource" "configs" {
         INSTANCES = var.instances
       }
     )
-    destination = "/home/student/nginx.conf"
+    destination = "/home/${var.user}/nginx.conf"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -199,11 +199,11 @@ resource "null_resource" "configs" {
         INSTANCES = var.instances
       }
     )
-    destination = "/home/student/html/index.html"
+    destination = "/home/${var.user}/html/index.html"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -213,14 +213,16 @@ resource "null_resource" "configs" {
     content = templatefile(
       "${path.module}/docker-compose.yaml",
       {
-        INSTANCES = var.instances
+        INSTANCES   = var.instances
+        NGINX_IMAGE = var.nginx_image
+        WETTY_IMAGE = var.wetty_image
       }
     )
-    destination = "/home/student/docker-compose.yaml"
+    destination = "/home/${var.user}/docker-compose.yaml"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }
@@ -230,14 +232,14 @@ resource "null_resource" "configs" {
     content = templatefile(
       "${path.module}/.htpasswd",
       {
-        PASSWORDS = random_password.student_password
+        PASSWORDS = random_password._password
       }
     )
-    destination = "/home/student/htpasswd/.htpasswd"
+    destination = "/home/${var.user}/htpasswd/.htpasswd"
 
     connection {
       type        = "ssh"
-      user        = "student"
+      user        = var.user
       host        = openstack_networking_floatingip_v2.wetty_server.address
       private_key = tls_private_key.ssh_key.private_key_pem
     }

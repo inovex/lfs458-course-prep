@@ -16,11 +16,11 @@ runcmd:
 
 system_info:
   default_user:
-    name: ${DEFAULT_USER}
+    name: ${USER}
 ssh_authorized_keys:
   - ${SSH_PUB_KEY}
 users:
-  - name: ${DEFAULT_USER}
+  - name: ${USER}
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: users, admin, docker
     shell: /bin/bash
@@ -39,8 +39,8 @@ write_files:
       After=docker.service
 
       [Service]
-      WorkingDirectory=/home/student
-      User=student
+      WorkingDirectory=/home/${USER}
+      User=${USER}
       ExecStart=/usr/bin/docker-compose up
       ExecStop=/usr/bin/docker-compose down
       TimeoutStartSec=0
