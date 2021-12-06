@@ -14,7 +14,7 @@ module "student_workspace" {
 }
 
 module "wetty_server" {
-  count = var.wetty_config.enabled
+  count = var.wetty_config.enabled ? 1 : 0
 
   source        = "./modules/wetty_server"
   network       = openstack_networking_network_v2.network.id

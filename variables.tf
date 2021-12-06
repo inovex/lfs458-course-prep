@@ -29,14 +29,14 @@ variable "trainer" {
 }
 
 variable "wetty_config" {
-  description = "config for wetty server, set enabled to 1 to deploy"
+  description = "config for wetty server, disabled by default"
   type = object({
-    enabled       = number,
+    enabled       = bool,
     trainer_email = string
   })
   default = {
-    enabled       = 0
-    trainer_email = "only required when enabled=1"
+    enabled       = false
+    trainer_email = "only required when enabled"
   }
 }
 
