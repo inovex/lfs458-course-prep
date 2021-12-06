@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# taken from https://github.com/wmnnd/nginx-certbot/blob/master/init-letsencrypt.sh
+
 if ! [ -x "$(command -v docker-compose)" ]; then
   echo 'Error: docker-compose is not installed.' >&2
   exit 1

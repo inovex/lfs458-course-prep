@@ -1,5 +1,6 @@
 version: '3'
 services:
+  # nginx and certbot configs adapted from https://github.com/wmnnd/nginx-certbot/blob/master/docker-compose.yml
   nginx:
     image: ${NGINX_IMAGE}
     restart: unless-stopped
