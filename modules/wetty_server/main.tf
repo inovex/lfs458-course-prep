@@ -139,6 +139,7 @@ resource "null_resource" "student_credentials" {
 
   triggers = {
     instance = openstack_compute_instance_v2.wetty_server.id
+    password = each.value[0]
   }
 
   depends_on = [
@@ -173,7 +174,18 @@ resource "null_resource" "student_credentials" {
 
 resource "null_resource" "configs" {
   triggers = {
-    instance = openstack_compute_instance_v2.wetty_server.id
+    instance            = openstack_compute_instance_v2.wetty_server.id
+    nginx_conf          = sha1(file("${path.module}/nginx.conf"))
+    index_html          = sha1(file("${path.module}/index.html"))
+    docker_compose_yaml = sha1(file("${path.module}/docker-compose.yaml"))
+    init_letsencrypt_sh = sha1(file("${path.module}/init-letsencrypt.sh"))
+    htpasswd            = sha1(file("${path.module}/.htpasswd"))
+    student_instances   = join(" ", keys(var.instances))
+    hostname            = openstack_dns_recordset_v2.wetty.name
+    nginx_image         = var.nginx_image
+    certbot_image       = var.certbot_image
+    wetty_image         = var.wetty_image
+    trainer_email       = var.trainer_email
   }
 
   depends_on = [
