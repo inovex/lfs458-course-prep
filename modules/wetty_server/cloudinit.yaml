@@ -1,0 +1,53 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - docker-compose
+  - apache2-utils
+runcmd:
+  - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+  # Disable the annoying motd
+  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
+  - chmod -x /etc/update-motd.d/80-livepatch
+  - chmod -x /etc/update-motd.d/10-help-text
+  - systemctl enable docker-compose-wetty
+  - systemctl start docker-compose-wetty
+
+system_info:
+  default_user:
+    name: ${USER}
+ssh_authorized_keys:
+  - ${SSH_PUB_KEY}
+users:
+  - name: ${USER}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin, docker
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${SSH_PUB_KEY}
+groups:
+  - docker
+
+write_files:
+  - path: /etc/systemd/system/docker-compose-wetty.service
+    content: |
+      [Unit]
+      Description=Docker Compose WeTTY Service
+      Requires=docker.service
+      After=docker.service
+
+      [Service]
+      WorkingDirectory=/home/${USER}
+      User=${USER}
+      ExecStartPre=/bin/bash init-letsencrypt.sh
+      ExecStart=/usr/bin/docker-compose up
+      ExecStop=/usr/bin/docker-compose down
+      TimeoutStartSec=0
+      Restart=on-failure
+      StartLimitIntervalSec=60
+      StartLimitBurst=3
+
+      [Install]
+      WantedBy=multi-user.target
