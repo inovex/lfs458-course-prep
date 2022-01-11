@@ -32,11 +32,24 @@ variable "wetty_config" {
   description = "config for wetty server, disabled by default"
   type = object({
     enabled       = bool,
-    trainer_email = string
+    trainer_email = optional(string)
   })
   default = {
     enabled       = false
     trainer_email = "only required when enabled"
+  }
+  validation {
+    condition = (
+      anytrue([
+        alltrue([
+          var.wetty_config["enabled"] == true,
+          can(regex("^\\S{1,}@\\S{2,}\\.\\S{2,}$", var.wetty_config["trainer_email"]))]
+        ),
+        var.wetty_config["enabled"] == false
+        ]
+      )
+    )
+    error_message = "When wetty_config is enabled, a valid trainer_email is required."
   }
 }
 
