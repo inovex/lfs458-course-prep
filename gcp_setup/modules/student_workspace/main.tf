@@ -1,9 +1,26 @@
-provider "tls" {
-  version = "~> 2.1.0"
-}
+terraform {
+  required_version = "~>1"
+  required_providers {
+    google = {
+      source = "google"
+      version = "~> 4.0.0"
+    }
 
-provider "local" {
-  version = "~> 1.3.0"
+    null = {
+      source = "null"
+      version = "~> 3.1"
+    }
+
+    tls = {
+      source = "tls"
+      version = "~> 3.1.0"
+    }
+
+    local = {
+      source = "local"
+      version = "~> 2.1.0"
+    }
+  }
 }
 
 data "google_compute_zones" "available" {}
@@ -52,13 +69,7 @@ resource "google_compute_instance" "node" {
     }
   }
 
-  metadata_startup_script = <<EOF
-  apt-get update && apt-get install -y python jq
-  modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
-  echo -ne 'filetype plugin indent on\nset expandtab\nset tabstop=2\nset softtabstop=2\nset shiftwidth=2\nset softtabstop=2\n' > /home/student/.vimrc
-  echo 'alias tailf="tail -f"' >> /home/student/.bashrc
-  touch /home/student/.rnd"
-EOF
+  metadata_startup_script = file("${path.module}/cloudinit.yaml")
 
   metadata = {
     ssh-keys = "student:${trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)} student"
@@ -77,5 +88,5 @@ EOF
 resource "local_file" "public_ips" {
   for_each = toset(var.students)
   content  = join("\n", [for i in values(google_compute_instance.node).* : i.network_interface.0.access_config.0.nat_ip if i.labels.student == each.value])
-  filename = "${path.cwd}/ips/${each.value}"
+  filename = "${path.cwd}/ips/${each.value}.txt"
 }

@@ -1,17 +1,34 @@
 terraform {
-  required_version = "~>0.12.7"
+  required_version = "~>1"
+  required_providers {
+    google = {
+      source = "google"
+      version = "~> 4.0.0"
+    }
+
+    null = {
+      source = "null"
+      version = "~> 3.1"
+    }
+
+    tls = {
+      source = "tls"
+      version = "~> 3.1.0"
+    }
+
+    local = {
+      source = "local"
+      version = "~> 2.1.0"
+    }
+  }
 }
 
 provider "google" {
-  version     = "~> v2.13.0"
   credentials = file("account.json")
   project     = var.project
   region      = var.region
 }
 
-provider "null" {
-  version = "~> 2.1"
-}
 
 resource "google_compute_network" "vpc_network" {
   name                    = "lfs458-network"
@@ -30,6 +47,7 @@ resource "google_compute_firewall" "allow_all" {
   allow {
     protocol = "all"
   }
+  source_ranges = [ "0.0.0.0/0" ]
 }
 
 module "student_workspace" {
