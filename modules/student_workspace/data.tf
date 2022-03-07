@@ -3,11 +3,7 @@ data "openstack_networking_network_v2" "public" {
 }
 
 data "openstack_images_image_v2" "ubuntu" {
+  name = "ubuntu-20.04-x86_64"
   most_recent = true
   visibility  = "public"
-
-  properties = {
-    os_distro  = "ubuntu"
-    os_version = "18.04"
-  }
 }
