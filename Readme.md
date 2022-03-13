@@ -43,6 +43,12 @@ Ensure that the `OS_CLOUD` environment variable is unset otherwise the value of 
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 After the creation of the instances run `./scripts/check_connection.sh` to check that all instances are reachable with the ssh key.
 
+
+### Remote state
+
+Terraform state is stored locally by default. The `main.tf` contains the required backend config snippet to enable remote state with a single command.
+This could be useful if you have to hand over the training environment to someone else.
+
 ## Sending Mails
 
 Ensure that the [Gmail API](https://developers.google.com/gmail/api/quickstart/python#step_1_turn_on_the) is activated.
