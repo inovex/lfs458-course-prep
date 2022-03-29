@@ -5,7 +5,6 @@ packages:
   - python
   - jq
   - tmate
-  - linux-image-5.4.0-89-generic
 runcmd:
   - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
   # Disable the annoying motd

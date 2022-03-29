@@ -12,7 +12,7 @@ If you look for the GCP terraform configuration, take a look at the folder `gcp_
 
 ## Prerequisite
 
-- terraform (`v0.12.+`)
+- terraform (`v1.1.7+`)
 - [puttygen](https://www.puttygen.com/) (tested with Release 0.71)
 - Openstack Account
 
@@ -26,7 +26,7 @@ cp terraform.tfvars.example terraform.tfvars
 
 Now fill in all the required variables (e.g. your student names).
 If you want to also send mails with the provided Python script add all information to `mail_info.yaml` in the `mail` folder.
-The student list can be read from the yaml file with the following command: `yq r ./mail/mail_info.yaml 'attendees.[*].Short' -c -j`.
+The student list can be read from the yaml file with the following command: `yq -r '.attendees | map("\"" + .Short + "\"") | join(", ")' mail/mail_info.yaml`.
 
 ## Run terraform
 
@@ -43,12 +43,18 @@ Ensure that the `OS_CLOUD` environment variable is unset otherwise the value of 
 Now we can verify everything with the `plan` step: `terraform plan` if everything looks fine just apply the changes: `terraform apply`
 After the creation of the instances run `./scripts/check_connection.sh` to check that all instances are reachable with the ssh key.
 
+
+### Remote state
+
+Terraform state is stored locally by default. The `main.tf` contains the required backend config snippet to enable remote state with a single command.
+This could be useful if you have to hand over the training environment to someone else.
+
 ## Sending Mails
 
 Ensure that the [Gmail API](https://developers.google.com/gmail/api/quickstart/python#step_1_turn_on_the) is activated.
 
 ```bash
-virtualenv --python=python3.7 .venv
+virtualenv --python=python3.10 .venv
 . .venv/bin/activate
 cd mail
 pip install -r requirements.txt

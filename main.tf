@@ -2,6 +2,19 @@ provider "openstack" {
   cloud = var.cloud
 }
 
+## REMOTE STATE
+# terraform {
+#     backend "swift" {}
+# }
+
+# Run this to set the required backend options:
+#-------------------------------------------------
+# terraform init \
+# -backend-config="cloud=training-lf-kubernetes" \
+# -backend-config="container=training-lf-kubernetes-terraform-state" \
+# -backend-config="archive_container=training-lf-kubernetes-terraform-state-archive" \
+# -backend-config="state_name=terraform-$TRAINER_NAME.stat"
+
 module "student_workspace" {
   source       = "./modules/student_workspace"
   students     = var.students
