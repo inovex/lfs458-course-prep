@@ -1,3 +1,24 @@
-Hello {Surname},
+Hallo {{name}}!
 
-foo bar !
+Im Anhang erhältst du ein Zip-Archiv mit den Zugangsdaten zu deiner Trainingsumgebung.
+Nach dem Entpacken findest du folgende Dateien:
+
+ * ips/{{short}}.txt enthält die Namen und IP-Adressen der Trainings-VMs.
+ * keys/{{short}} ist dein privater SSH-Schlüssel im PEM-Format.
+ * keys/{{short}}.ppk ist der selbe Schlüssel im PuTTY-Format.
+
+Du kannst dich zum Testen gerne schon mit den VMs verbinden, nimm aber bitte noch keine Änderungen vor.
+
+    ssh -i keys/{{short}} student@IP-ADRESSE-AUS-TXT
+{%-if wetty_host is defined %}
+
+Solltest es mit der SSH-Verbindung nicht klappen, kannst du dich auch über ein Web-Terminal verbinden.
+Benutze dazu bitte den folgenden Link. Du wirst dort zwar eine Liste mit allen VMs sehen, kannst aber nur auf deine zugreifen.
+
+https://{{short}}:{{wetty_password}}@{{wetty_host}}/
+{%- endif %}
+
+Wir sehen uns dann zum Training!
+
+Viele Grüße,
+{{sender_name}}

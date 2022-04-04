@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-import pickle
-import os.path
+"""
+Send emails to attendees via GMail API
+"""
+import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-import base64
 import mimetypes
+import os.path
+import pickle
+
+from apiclient import errors
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from apiclient import errors
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 import yaml
 
 
@@ -19,7 +23,7 @@ import yaml
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
 
-def create_message_with_attachment(sender, receiver, subject, message_text, file):
+def create_message(sender, receiver, subject, message_text, file=None):
     """Create a message for an email.
 
     Args:
@@ -40,20 +44,21 @@ def create_message_with_attachment(sender, receiver, subject, message_text, file
     msg = MIMEText(message_text)
     message.attach(msg)
 
-    content_type, encoding = mimetypes.guess_type(file)
-    if content_type is None or encoding is not None:
-        content_type = "application/octet-stream"
+    if file is not None:
+        content_type, encoding = mimetypes.guess_type(file)
+        if content_type is None or encoding is not None:
+            content_type = "application/octet-stream"
 
-    main_type, sub_type = content_type.split("/", 1)
-    msg = MIMEBase(main_type, sub_type)
-    with open(file, "rb") as content:
-        msg.set_payload(content.read())
+        main_type, sub_type = content_type.split("/", 1)
+        msg = MIMEBase(main_type, sub_type)
+        with open(file, "rb") as content:
+            msg.set_payload(content.read())
 
-    # Fixes malformed content: https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
-    encoders.encode_base64(msg)
-    filename = os.path.basename(file)
-    msg.add_header("Content-Disposition", "attachment", filename=filename)
-    message.attach(msg)
+        # Fixes malformed content: https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
+        encoders.encode_base64(msg)
+        filename = os.path.basename(file)
+        msg.add_header("Content-Disposition", "attachment", filename=filename)
+        message.attach(msg)
 
     # the message should converted from string to bytes.
     message_as_bytes = message.as_bytes()
@@ -75,19 +80,27 @@ def send_message(service, user_id, message):
     Returns:
       Sent Message.
     """
+    message = None
     try:
         message = (
             service.users().messages().send(userId=user_id, body=message).execute()
         )
-        print("Message Id: {}".format(message["id"]))
-        return message
+        print(f"Message Id: {message['id']}")
     except errors.HttpError as error:
-        print("An error occurred: {}".format(error))
+        print(f"An error occurred: {error}")
+    return message
+
+
+def render_body(**kwargs):
+    """Use Jinja2 to render the email body."""
+    env = Environment(loader=FileSystemLoader("."), autoescape=select_autoescape())
+    template = env.get_template("mail_template.txt")
+    return template.render(**kwargs)
 
 
 def main():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
+    """
+    Send emails to attendees via GMail API
     """
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -110,24 +123,24 @@ def main():
     service = build("gmail", "v1", credentials=creds)
 
     # Configure mail boilerplate
-    mail_info = yaml.safe_load(open("mail_info.yaml"))
+    with open("mail_info.yaml") as mail_info_file:
+        mail_info = yaml.safe_load(mail_info_file)
     attendees = mail_info["attendees"]
-    sender = mail_info["sender"]
+    sender = mail_info["sender_email"]
     subject = mail_info["subject"]
-
-    # Read Mail template
-    text_template = ""
-    with open("mail_template.txt") as temp:
-        text_template = temp.read()
+    wetty_host = mail_info.get("wetty_host")
 
     for attendee in attendees:
-        print("Send mail to: {}".format(attendee["Mail"]))
-        msg = create_message_with_attachment(
+        print(f"Send mail to: {attendee['email']}")
+        if wetty_host is not None:
+            with open(f"../passwords/{attendee['short']}") as pwfile:
+                attendee["wetty_password"] = pwfile.read()
+        msg = create_message(
             sender,
-            attendee["Mail"],
+            attendee["email"],
             subject,
-            text_template.format(**mail_info, **attendee),
-            "../packages/{}.zip".format(attendee["Short"]),
+            render_body(**mail_info, **attendee),
+            f"../packages/{attendee['short']}.zip",
         )
         send_message(service, "me", msg)
 
