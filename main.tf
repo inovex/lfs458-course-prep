@@ -44,7 +44,8 @@ resource "null_resource" "cluster" {
   triggers = {
     ips  = "${module.student_workspace.ips_checksum}"
     keys = "${module.student_workspace.keys_checksum}"
-  }
+    passwords = join(",",flatten(module.wetty_server.*.student_passwords_hash))
+   }
 
   provisioner "local-exec" {
     command = "./scripts/create_package.sh"
