@@ -48,3 +48,9 @@ variable "dns_domain" {
   description = "domain for creating DNS records, currently only used for wetty-server"
   default     = "training-lf-kubernetes.fra.ics.inovex.io."
 }
+
+variable "solutions_url" {
+  description = "URL to download and unpack solutions from LF"
+  type        = string
+  default     = ""
+}

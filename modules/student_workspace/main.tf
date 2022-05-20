@@ -31,6 +31,8 @@ resource "openstack_compute_instance_v2" "instance" {
     {
       DEFAULT_USER = "student"
       SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+      SOLUTIONS_URL = var.solutions_url
+      SOLUTIONS_PATCH = var.solutions_patch
     }
   )
 

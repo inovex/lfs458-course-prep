@@ -25,3 +25,13 @@ variable "trainer" {
 variable "sec_groups" {
   type = list(string)
 }
+
+variable "solutions_url" {
+  type = string
+  default = ""
+}
+
+variable "solutions_patch" {
+  type = string
+  default = ""
+}
