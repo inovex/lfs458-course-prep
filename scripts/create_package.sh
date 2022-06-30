@@ -15,5 +15,5 @@ do
   FILENAME=${FILENAME%.*}
   echo "Create package for ${FILENAME}"
   puttygen "./keys/${FILENAME}" -O private -o "keys/${FILENAME}.ppk"
-  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}.txt"
+  zip "${DEST}/${FILENAME}.zip" "./keys/${FILENAME}" "./keys/${FILENAME}.ppk" "./ips/${FILENAME}.txt" "./passwords/${FILENAME}"
 done
