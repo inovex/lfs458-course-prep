@@ -16,14 +16,16 @@ provider "openstack" {
 # -backend-config="state_name=terraform-$TRAINER_NAME.stat"
 
 module "student_workspace" {
-  source       = "./modules/student_workspace"
-  students     = var.students
-  instances    = var.instances
-  network      = openstack_networking_network_v2.network.id
-  machine_type = var.machine_type
-  course_type  = var.course_type
-  trainer      = var.trainer
-  sec_groups   = [openstack_networking_secgroup_v2.sec.name]
+  source          = "./modules/student_workspace"
+  students        = var.students
+  instances       = var.instances
+  network         = openstack_networking_network_v2.network.id
+  machine_type    = var.machine_type
+  course_type     = var.course_type
+  trainer         = var.trainer
+  sec_groups      = [openstack_networking_secgroup_v2.sec.name]
+  solutions_url   = var.solutions_url
+  solutions_patch = fileexists("${path.module}/solutions.patch") ? filebase64("${path.module}/solutions.patch") : ""
 }
 
 module "wetty_server" {

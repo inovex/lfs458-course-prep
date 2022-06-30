@@ -1,0 +1,23 @@
+diff -ruN LFD459/SOLUTIONS/s_02/k8sWorker.sh LFD459p/SOLUTIONS/s_02/k8sWorker.sh
+--- LFD459/SOLUTIONS/s_02/k8sWorker.sh	2022-02-24 20:24:03.000000000 +0000
++++ LFD459p/SOLUTIONS/s_02/k8sWorker.sh	2022-05-20 12:33:07.621080542 +0000
+@@ -47,7 +47,7 @@
+ sudo apt-get update
+
+ # Install cri-o
+-sudo apt-get install -y cri-o cri-o-runc podman buildah
++sudo apt-get install -y cri-o cri-o-runc podman
+
+ sleep 3
+
+diff -ruN LFD459/SOLUTIONS/s_02/k8scp.sh LFD459p/SOLUTIONS/s_02/k8scp.sh
+--- LFD459/SOLUTIONS/s_02/k8scp.sh	2022-02-24 20:24:03.000000000 +0000
++++ LFD459p/SOLUTIONS/s_02/k8scp.sh	2022-05-20 12:32:55.557075552 +0000
+@@ -48,7 +48,7 @@
+ sudo apt-get update
+
+ # Install cri-o
+-sudo apt-get install -y cri-o cri-o-runc podman buildah
++sudo apt-get install -y cri-o cri-o-runc podman
+
+ sleep 3

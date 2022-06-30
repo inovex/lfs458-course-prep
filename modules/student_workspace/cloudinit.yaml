@@ -26,6 +26,33 @@ users:
     ssh_authorized_keys:
       - ${SSH_PUB_KEY}
 write_files:
+  %{ if SOLUTIONS_PATCH != "" }
+  - path: "/tmp/solutions.patch"
+    permissions: "0666"
+    encoding: b64
+    content: ${SOLUTIONS_PATCH}
+  %{ endif }
+  - path: "/tmp/download_solutions.sh"
+    permissions: "0700"
+    content: |
+      #!/bin/bash
+
+      if [[ "${SOLUTIONS_URL}" =~ https://.+:.+@training.linuxfoundation.org/cm/.+SOLUTIONS.tar.+ ]]
+      then
+        echo "downloading solutions from ${SOLUTIONS_URL}"
+        wget -P /tmp -q ${SOLUTIONS_URL}
+        echo "unpack solutions"
+        tar -xvf /tmp/*SOLUTIONS.tar* -C /home/${DEFAULT_USER}/
+        echo "chown solutions to ${DEFAULT_USER}"
+        chown -R ${DEFAULT_USER}:users /home/${DEFAULT_USER}/LF*
+        if [[ -f /tmp/solutions.patch ]]
+        then
+          echo "trying to patch solutions"
+          patch -d /home/${DEFAULT_USER} -p0 < /tmp/solutions.patch
+        fi
+      else
+        echo "SOLUTIONS_URL invalid or username password part missing"
+      fi
   - path: "/etc/vim/vimrc.local"
     permissions: "0744"
     content: |
@@ -35,6 +62,9 @@ write_files:
       set softtabstop=2
       set shiftwidth=2
       set softtabstop=2
+
+runcmd:
+  - /tmp/download_solutions.sh
 
 power_state:
   mode: reboot
