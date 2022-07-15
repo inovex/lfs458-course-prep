@@ -54,3 +54,9 @@ variable "solutions_url" {
   type        = string
   default     = ""
 }
+
+variable "solutions_patch" {
+  description = "URL to download and unpack solutions from LF"
+  type        = string
+  default     = ""
+}

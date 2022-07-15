@@ -27,11 +27,16 @@ variable "sec_groups" {
 }
 
 variable "solutions_url" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "solutions_patch" {
-  type = string
+  type    = string
+  default = ""
+}
+
+variable "dns_domain" {
+  type    = string
   default = ""
 }

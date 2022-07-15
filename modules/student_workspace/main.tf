@@ -29,9 +29,9 @@ resource "openstack_compute_instance_v2" "instance" {
   user_data = templatefile(
     "${path.module}/cloudinit.yaml",
     {
-      DEFAULT_USER = "student"
-      SSH_PUB_KEY  = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
-      SOLUTIONS_URL = var.solutions_url
+      DEFAULT_USER    = "student"
+      SSH_PUB_KEY     = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+      SOLUTIONS_URL   = var.solutions_url
       SOLUTIONS_PATCH = var.solutions_patch
     }
   )
@@ -87,4 +87,15 @@ resource "local_file" "public_ips" {
   // otherwise we have a non POSIX compliant file
   content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : format("%s: %s", i.description, i.address) if contains(i.tags, each.value)]))
   filename = "${path.cwd}/ips/${each.value}.txt"
+}
+
+resource "openstack_dns_recordset_v2" "instance" {
+  for_each = openstack_compute_instance_v2.instance
+  zone_id  = data.openstack_dns_zone_v2.terraform.id
+  # name must be <= 64 chars, otherwise certbot will fail
+  name        = "${each.value.name}.${data.openstack_dns_zone_v2.terraform.name}"
+  ttl         = 60
+  type        = "A"
+  records     = [openstack_networking_floatingip_v2.instance[each.value.name].address]
+  description = "DNS entry for ${var.course_type} by ${var.trainer}"
 }
