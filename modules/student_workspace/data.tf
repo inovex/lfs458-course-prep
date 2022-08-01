@@ -8,6 +8,6 @@ data "openstack_images_image_v2" "ubuntu" {
   visibility  = "public"
 }
 
-data "openstack_dns_zone_v2" "terraform" {
+data "openstack_dns_zone_v2" "dns_domain" {
   name = var.dns_domain
 }

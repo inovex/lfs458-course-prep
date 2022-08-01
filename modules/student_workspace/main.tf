@@ -91,9 +91,9 @@ resource "local_file" "public_ips" {
 
 resource "openstack_dns_recordset_v2" "instance" {
   for_each = openstack_compute_instance_v2.instance
-  zone_id  = data.openstack_dns_zone_v2.terraform.id
+  zone_id  = data.openstack_dns_zone_v2.dns_domain.id
   # name must be <= 64 chars, otherwise certbot will fail
-  name        = "${each.value.name}.${data.openstack_dns_zone_v2.terraform.name}"
+  name        = "${each.value.name}.${data.openstack_dns_zone_v2.dns_domain.name}"
   ttl         = 60
   type        = "A"
   records     = [openstack_networking_floatingip_v2.instance[each.value.name].address]

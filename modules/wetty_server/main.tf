@@ -83,9 +83,9 @@ data "openstack_dns_zone_v2" "terraform" {
 }
 
 resource "openstack_dns_recordset_v2" "wetty" {
-  zone_id = data.openstack_dns_zone_v2.terraform.id
+  zone_id = data.openstack_dns_zone_v2.dns_domain.id
   # name must be <= 64 chars, otherwise certbot will fail
-  name    = "wetty-${var.trainer}.${data.openstack_dns_zone_v2.terraform.name}"
+  name    = "wetty-${var.trainer}.${data.openstack_dns_zone_v2.dns_domain.name}"
   ttl     = 300
   type    = "A"
   records = [openstack_networking_floatingip_v2.wetty_server.address]
