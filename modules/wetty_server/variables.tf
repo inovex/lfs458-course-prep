@@ -53,3 +53,7 @@ variable "wetty_image" {
   type    = string
   default = "wettyoss/wetty" # FIXME: Pin?
 }
+
+variable "router" {
+  type = string
+}

@@ -19,12 +19,13 @@ locals {
     for instance, info in var.instances :
     info["student"] => trimspace(info["ssh_key"])...
   }
+  instance_secgroups = distinct(compact(concat(var.sec_groups, [openstack_networking_secgroup_v2.wetty_self.name])))
 }
 
 resource "openstack_compute_instance_v2" "wetty_server" {
   name            = "wetty-server-${var.course_type}-${var.trainer}"
   flavor_name     = var.machine_type
-  security_groups = var.sec_groups
+  security_groups = local.instance_secgroups
   user_data = templatefile(
     "${path.module}/cloudinit.yaml",
     {
@@ -50,7 +51,7 @@ resource "openstack_compute_instance_v2" "wetty_server" {
   }
 
   network {
-    uuid = var.network
+    uuid = openstack_networking_network_v2.network.id
   }
 
   lifecycle {

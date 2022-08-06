@@ -2,22 +2,22 @@ terraform {
   required_version = "~>1"
   required_providers {
     google = {
-      source = "google"
+      source  = "google"
       version = "~> 4.0.0"
     }
 
     null = {
-      source = "null"
+      source  = "null"
       version = "~> 3.1"
     }
 
     tls = {
-      source = "tls"
+      source  = "tls"
       version = "~> 3.1.0"
     }
 
     local = {
-      source = "local"
+      source  = "local"
       version = "~> 2.1.0"
     }
   }
