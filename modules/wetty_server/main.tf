@@ -78,7 +78,7 @@ resource "openstack_compute_floatingip_associate_v2" "wetty_server" {
   instance_id = openstack_compute_instance_v2.wetty_server.id
 }
 
-data "openstack_dns_zone_v2" "terraform" {
+data "openstack_dns_zone_v2" "dns_domain" {
   name = var.dns_domain
 }
 
