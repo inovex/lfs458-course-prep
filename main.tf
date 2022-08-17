@@ -23,6 +23,7 @@ module "student_workspace" {
   machine_type    = var.machine_type
   course_type     = var.course_type
   trainer         = var.trainer
+  dns_domain      = var.dns_domain
   sec_groups      = [openstack_networking_secgroup_v2.sec.name]
   solutions_url   = var.solutions_url
   solutions_patch = fileexists("${path.module}/solutions.patch") ? filebase64("${path.module}/solutions.patch") : ""
@@ -44,10 +45,10 @@ module "wetty_server" {
 
 resource "null_resource" "cluster" {
   triggers = {
-    ips  = "${module.student_workspace.ips_checksum}"
-    keys = "${module.student_workspace.keys_checksum}"
-    passwords = join(",",flatten(module.wetty_server.*.student_passwords_hash))
-   }
+    ips       = "${module.student_workspace.ips_checksum}"
+    keys      = "${module.student_workspace.keys_checksum}"
+    passwords = join(",", flatten(module.wetty_server.*.student_passwords_hash))
+  }
 
   provisioner "local-exec" {
     command = "./scripts/create_package.sh"

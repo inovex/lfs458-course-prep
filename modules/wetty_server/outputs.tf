@@ -3,5 +3,5 @@ output "wetty_server_address" {
 }
 
 output "student_passwords_hash" {
-  value = [ for entry in random_password.student_password: sha256(entry.result) ]
+  value = [for entry in random_password.student_password : sha256(entry.result)]
 }
