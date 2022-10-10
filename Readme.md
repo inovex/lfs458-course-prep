@@ -79,21 +79,30 @@ To do that:
 
 ## Sending Mails
 
-Ensure that the [Gmail API](https://developers.google.com/gmail/api/quickstart/python#step_1_turn_on_the) is activated.
+### Prepare Gmail API
+
+ 1. [Create a GCP project](https://developers.google.com/workspace/guides/create-project) (or use an existing one)
+ 2. Enable the GMail API for the project (same link as above)
+ 3. [Create credentials (consent screen & OAuth client ID)](https://developers.google.com/workspace/guides/create-credentials)
+    Configure the consent screen for a desktop app. You will see it when you first use the credentials.
+ 4. Store the credentials as `credentials.json` in the `mail` directory.
+
+### Prepare Python venv and config files
 
 ```bash
-virtualenv --python=python3.10 .venv
-. .venv/bin/activate
 cd mail
-pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 ```
 
-Adjust the files under `mail`:
+Adjust the config and template files:
 
 - Add all your attendees to the `mail_info.yaml` file
 - Adjust the mail text in `mail_template.txt`
 
-Finally send the mails and thee attachments with: `python3 send_mails.py`
+### Send mails
+
+Finally send the mails and the attachments with: `.venv/bin/python send_mails.py`
 
 ## Clean up
 

@@ -1,6 +1,9 @@
-sender: dummy@nope.dev
-subject: "LFS458 Course"
+sender_email: TRAINER@inovex.de
+sender_name: TRAINER
+subject: "Kubernetes Administration Training Zugangsdaten"
+# Comment out if not configured.
+wetty_host: wetty-TRAINER.training-lf-kubernetes.fra.ics.inovex.io
 attendees:
-- Surname: Mustermann
-  Mail: max.mustermann@nope.dev
-  Short: mmustermann
+- name: Max
+  email: max.mustermann@nope.dev
+  short: mmustermann
