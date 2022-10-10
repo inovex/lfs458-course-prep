@@ -80,15 +80,15 @@ def send_message(service, user_id, message):
     Returns:
       Sent Message.
     """
-    message = None
+    response = None
     try:
-        message = (
+        response = (
             service.users().messages().send(userId=user_id, body=message).execute()
         )
-        print(f"Message Id: {message['id']}")
+        print(f"Message Id: {response['id']}")
     except errors.HttpError as error:
         print(f"An error occurred: {error}")
-    return message
+    return response
 
 
 def render_body(**kwargs):
