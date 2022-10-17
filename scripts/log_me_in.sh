@@ -14,7 +14,7 @@ menu_from_array ()
             echo -n $item
             break;
         else
-            echo "Wrong selection: Select any number from 1-$#"
+            echo >&2 "Wrong selection: Select any number from 1-$#"
         fi
     done
 }
