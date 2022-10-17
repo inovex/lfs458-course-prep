@@ -11,10 +11,10 @@ menu_from_array ()
         # Check the selected menu item number
         if [ 1 -le "$REPLY" ] && [ "$REPLY" -le $# ];
         then
-            student=$item
+            echo -n $item
             break;
         else
-            echo "Wrong selection: Select any number from 1-$#"
+            echo >&2 "Wrong selection: Select any number from 1-$#"
         fi
     done
 }
@@ -26,11 +26,12 @@ do
     students+=("${student%.*}")
 done
 
-menu_from_array "${students[@]}"
+student=$(menu_from_array "${students[@]}")
+hosts=($(cat ips/${student}.txt | cut -d: -f1 ))
+host=$(menu_from_array "${hosts[@]}" )
 
 # Find the script location. Inspired by: https://stackoverflow.com/questions/59895/get-the-source-directory-of-a-bash-script-from-within-the-script-itself
 scriptLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-# fetch first ip address
-ip=$(head -n 1 "${scriptLocation}/../ips/${student}.txt" | awk -F' ' '{print $2}')
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/${student}" "student@${ip}"
+fqdn="${host}.training-lf-kubernetes.fra.ics.inovex.io"
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i "keys/${student}" "student@${fqdn}"
