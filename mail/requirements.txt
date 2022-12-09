@@ -7,7 +7,7 @@ Jinja2==3.1.2
 # indirect dependencies
 astroid==2.11.7
 cachetools==5.2.0
-certifi==2022.6.15
+certifi==2022.12.7
 charset-normalizer==2.1.1
 dill==0.3.5.1
 google-api-core==2.8.2
