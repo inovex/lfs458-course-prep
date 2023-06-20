@@ -1,43 +1,33 @@
-locals {
-  student_instances = toset([for i in setproduct(var.students, var.instances) : format("%s-%s", i[0], i[1])])
-}
-
 resource "tls_private_key" "ssh_key" {
-  for_each  = toset(var.students)
   algorithm = "RSA"
   rsa_bits  = "4096"
 }
 
 resource "local_file" "private_key_pem" {
-  for_each = toset(var.students)
-  content  = tls_private_key.ssh_key[each.value].private_key_pem
-  filename = "${path.cwd}/keys/${each.value}"
+  content  = tls_private_key.ssh_key.private_key_pem
+  filename = "${path.cwd}/keys/${var.student_name}"
 
   provisioner "local-exec" {
-    command = "chmod 600 ${path.cwd}/keys/${each.value}"
+    command = "chmod 600 ${path.cwd}/keys/${var.student_name}"
   }
 }
 
-// We iterate over the product of students * instances e.g.
-// -> student0-master, student0-node and so on.
-// We use for_each here because count would destroy machines if we change the number of instances
 resource "openstack_compute_instance_v2" "instance" {
-  for_each        = local.student_instances
-  name            = each.value
-  flavor_name     = var.machine_type
-  security_groups = var.sec_groups
+  for_each    = toset(var.instances)
+  name        = "${var.student_name}-${each.value}"
+  flavor_name = var.machine_type
   user_data = templatefile(
     "${path.module}/cloudinit.yaml",
     {
       DEFAULT_USER    = "student"
-      SSH_PUB_KEY     = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+      SSH_PUB_KEY     = trimspace(tls_private_key.ssh_key.public_key_openssh)
       SOLUTIONS_URL   = var.solutions_url
       SOLUTIONS_PATCH = var.solutions_patch
     }
   )
 
   tags = [
-    split("-", each.value)[0],
+    var.student_name,
     var.course_type,
     format("trainer-%s", var.trainer)
   ]
@@ -52,7 +42,7 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 
   network {
-    uuid = var.network
+    port = openstack_networking_port_v2.instance[each.value].id
   }
 
   lifecycle {
@@ -62,31 +52,45 @@ resource "openstack_compute_instance_v2" "instance" {
       block_device,
     ]
   }
+
+  depends_on = [
+    openstack_networking_subnet_v2.subnet, openstack_networking_secgroup_v2.this
+  ]
+}
+
+resource "openstack_networking_port_v2" "instance" {
+  for_each           = toset(var.instances)
+  name               = "${each.value}_port"
+  network_id         = openstack_networking_network_v2.network.id
+  admin_state_up     = "true"
+  security_group_ids = [openstack_networking_secgroup_v2.this.id]
+  fixed_ip {
+    subnet_id  = openstack_networking_subnet_v2.subnet.id
+    ip_address = cidrhost(var.network, index(var.instances, each.value) + 100)
+  }
 }
 
 resource "openstack_networking_floatingip_v2" "instance" {
-  for_each    = local.student_instances
+  for_each    = openstack_compute_instance_v2.instance
   pool        = data.openstack_networking_network_v2.public.name
-  description = each.value
+  description = each.value.name
   tags = [
-    split("-", each.value)[0],
+    var.student_name,
+    each.value.name,
     var.course_type,
     format("trainer-%s", var.trainer)
   ]
 }
 
 resource "openstack_compute_floatingip_associate_v2" "instance" {
-  for_each    = local.student_instances
-  floating_ip = openstack_networking_floatingip_v2.instance[each.value].address
-  instance_id = openstack_compute_instance_v2.instance[each.value].id
+  for_each    = openstack_networking_floatingip_v2.instance
+  floating_ip = each.value.address
+  instance_id = openstack_compute_instance_v2.instance[each.key].id
 }
 
 resource "local_file" "public_ips" {
-  for_each = toset(var.students)
-  // The format is required to end the file with a \n
-  // otherwise we have a non POSIX compliant file
-  content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : format("%s: %s", i.description, i.address) if contains(i.tags, each.value)]))
-  filename = "${path.cwd}/ips/${each.value}.txt"
+  content  = format("%s\n", join("\n", [for i in values(openstack_networking_floatingip_v2.instance).* : format("%s: %s", i.description, i.address)]))
+  filename = "${path.cwd}/ips/${var.student_name}.txt"
 }
 
 resource "openstack_dns_recordset_v2" "instance" {
@@ -96,6 +100,6 @@ resource "openstack_dns_recordset_v2" "instance" {
   name        = "${each.value.name}.${data.openstack_dns_zone_v2.dns_domain.name}"
   ttl         = 60
   type        = "A"
-  records     = [openstack_networking_floatingip_v2.instance[each.value.name].address]
+  records     = [openstack_networking_floatingip_v2.instance[each.key].address]
   description = "DNS entry for ${var.course_type} by ${var.trainer}"
 }
