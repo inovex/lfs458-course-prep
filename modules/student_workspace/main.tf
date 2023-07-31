@@ -1,5 +1,18 @@
 locals {
   student_instances = {for pair in setproduct(var.students, var.instances):format("%s-%s", pair[0], pair[1]) => pair}
+  join_token = "${random_password.join_token_1.result}.${random_password.join_token_2.result}"
+}
+
+resource "random_password" "join_token_1" {
+  length           = 6
+  special          = false
+  upper            = false
+}
+
+resource "random_password" "join_token_2" {
+  length           = 16
+  special          = false
+  upper            = false
 }
 
 resource "tls_private_key" "ssh_key" {
@@ -38,6 +51,7 @@ resource "openstack_compute_instance_v2" "instance" {
       CRI_VERSION     = "v1.26.0"
       CP_NODE         = "${each.value[0]}-cp"
       IS_CP           = each.value[1] == "cp"
+      JOIN_TOKEN      = local.join_token
     }
   )
 

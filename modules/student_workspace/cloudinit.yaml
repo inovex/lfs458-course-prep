@@ -121,7 +121,7 @@ write_files:
 
       %{ if IS_CP }
       # Configure CP node
-      kubeadm init --pod-network-cidr=192.168.0.0/16 --token=2bfg63.0olbe7iny62qzqt6
+      kubeadm init --pod-network-cidr=192.168.0.0/16 --token=${JOIN_TOKEN}
 
       # Configure the non-root user to use kubectl
       mkdir -p /home/${DEFAULT_USER}/.kube
@@ -135,7 +135,7 @@ write_files:
       %{ else }
 
       # Configure worker node
-      kubeadm join ${CP_NODE}:6443 --token=2bfg63.0olbe7iny62qzqt6 --discovery-token-unsafe-skip-ca-verification
+      kubeadm join ${CP_NODE}:6443 --token=${JOIN_TOKEN} --discovery-token-unsafe-skip-ca-verification
       %{ endif }
 
 runcmd:
