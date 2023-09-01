@@ -49,7 +49,9 @@ resource "openstack_compute_instance_v2" "instance" {
       CALICO_VERSION  = "v3.25.0"
       HELM_VERSION    = "v3.12.0"
       CRI_VERSION     = "v1.26.0"
+      PODMAN_VERSION  = "v4.6.1"
       CP_NODE         = "${each.value[0]}-cp"
+      REGISTRY_HOST   = "registry-${var.course_type}-${var.trainer}"
       IS_CP           = each.value[1] == "cp"
       JOIN_TOKEN      = local.join_token
     }

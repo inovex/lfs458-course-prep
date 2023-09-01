@@ -108,6 +108,18 @@ write_files:
       # Configure containerd and restart
       mkdir -p /etc/containerd
       containerd config default | sed -e 's/SystemdCgroup = false/SystemdCgroup = true/g' > /etc/containerd/config.toml
+      sudo cat << EOF >> /etc/containerd/config.toml
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."*"]
+      endpoint = ["http://${REGISTRY_HOST}:5000"]
+      EOF
+
+      mkdir -p /etc/containers/registries.conf.d
+      cat << EOF > /etc/containers/registries.conf.d/registry.conf
+      [[registry]]
+      location = "${REGISTRY_HOST}:5000"
+      insecure = true
+      EOF
+
       sudo systemctl restart containerd
       sudo systemctl enable containerd
 
@@ -120,6 +132,12 @@ write_files:
                     --set image-endpoint=unix:///run/containerd/containerd.sock
 
       %{ if IS_CP }
+      # Install podman
+      curl -fsSL -o podman-linux-amd64.tar.gz https://github.com/mgoltzsche/podman-static/releases/download/${PODMAN_VERSION}/podman-linux-amd64.tar.gz
+      tar -xf podman-linux-amd64.tar.gz
+      cp -r podman-linux-amd64/usr podman-linux-amd64/etc /
+      rm -r podman-linux-amd64 podman-linux-amd64.tar.gz
+
       # Configure CP node
       kubeadm init --pod-network-cidr=192.168.0.0/16 --token=${JOIN_TOKEN}
 
@@ -128,6 +146,9 @@ write_files:
       cp -f /etc/kubernetes/admin.conf /home/${DEFAULT_USER}/.kube/config
       chown -R ${DEFAULT_USER}:${DEFAULT_USER} /home/${DEFAULT_USER}/.kube
       kubectl completion bash > /etc/bash_completion.d/kubectl
+
+      # Use all nodes for workloads
+      kubectl taint node --all node-role.kubernetes.io/control-plane-
 
       # Install pod networking
       kubectl apply --kubeconfig=/etc/kubernetes/admin.conf \

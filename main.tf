@@ -53,6 +53,15 @@ module "wetty_server" {
   trainer_email = var.wetty_config.trainer_email
 }
 
+module "registry" {
+  source        = "./modules/registry"
+  network       = module.network.network_id
+  machine_type  = var.machine_type
+  course_type   = var.course_type
+  trainer       = var.trainer
+  sec_groups    = [module.network.secgroup_name]
+}
+
 resource "null_resource" "cluster" {
   triggers = {
     ips       = "${module.student_workspace.ips_checksum}"
