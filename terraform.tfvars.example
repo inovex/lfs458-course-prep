@@ -1,5 +1,5 @@
 cloud = "training-lf-kubernetes"
-machine_type = "m4.large"
+machine_type = "m5.small"
 trainer = "trainer-name"
 students = ["student1"]
 course_type = "lfs458"
