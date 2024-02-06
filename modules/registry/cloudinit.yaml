@@ -1,0 +1,67 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+fs_setup:
+  - label: data
+    filesystem: ext4
+    device: /dev/sdb
+mounts:
+  - [ sdb, /opt/data ]
+packages:
+  - docker.io
+  - docker-compose
+runcmd:
+  - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
+  # Disable the annoying motd
+  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
+  - rm -f /etc/update-motd.d/80-livepatch /etc/update-motd.d/10-help-text
+  - chown -R ${USER}:${USER} /home/${USER}
+  - systemctl enable docker-compose-registry
+  - systemctl start docker-compose-registry
+
+system_info:
+  default_user:
+    name: ${USER}
+ssh_authorized_keys:
+  - ${SSH_PUB_KEY}
+users:
+  - name: ${USER}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin, docker
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${SSH_PUB_KEY}
+groups:
+  - docker
+
+write_files:
+  - path: /etc/systemd/system/docker-compose-registry.service
+    content: |
+      [Unit]
+      Description=Docker Compose WeTTY Service
+      Requires=docker.service
+      After=docker.service
+
+      [Service]
+      WorkingDirectory=/home/${USER}
+      User=${USER}
+      ExecStart=/usr/bin/docker-compose up
+      ExecStop=/usr/bin/docker-compose down
+      TimeoutStartSec=0
+      Restart=on-failure
+      StartLimitIntervalSec=60
+      StartLimitBurst=3
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /home/${USER}/docker-compose.yaml
+    content: |
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+        environment:
+          REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+        volumes:
+          - /opt/data:/data

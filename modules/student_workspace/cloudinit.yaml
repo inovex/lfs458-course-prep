@@ -5,12 +5,16 @@ packages:
   - python
   - jq
   - tmate
-runcmd:
-  - modprobe br_netfilter && echo '1' > /proc/sys/net/ipv4/ip_forward
-  # Disable the annoying motd
-  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
-  - chmod -x /etc/update-motd.d/80-livepatch
-  - chmod -x /etc/update-motd.d/10-help-text
+  - curl
+  - vim
+  - joe
+  - git
+  - wget
+  - gnupg2
+  - software-properties-common
+  - apt-transport-https
+  - ca-certificates
+  - bash-completion
 
 system_info:
   default_user:
@@ -27,17 +31,17 @@ users:
       - ${SSH_PUB_KEY}
 write_files:
   %{ if SOLUTIONS_PATCH != "" }
-  - path: "/tmp/solutions.patch"
+  - path: "/usr/local/share/solutions.patch"
     permissions: "0666"
     encoding: b64
     content: ${SOLUTIONS_PATCH}
   %{ endif }
-  - path: "/tmp/download_solutions.sh"
+  - path: "/usr/local/bin/download_solutions.sh"
     permissions: "0700"
     content: |
       #!/bin/bash
 
-      if [[ "${SOLUTIONS_URL}" =~ https://.+:.+@training.linuxfoundation.org/cm/.+SOLUTIONS.tar.+ ]]
+      if [[ "${SOLUTIONS_URL}" =~ https://.+:.+@cm.lf.training/.+SOLUTIONS.tar.+ ]]
       then
         echo "downloading solutions from ${SOLUTIONS_URL}"
         wget -P /tmp -q ${SOLUTIONS_URL}
@@ -45,10 +49,10 @@ write_files:
         tar -xvf /tmp/*SOLUTIONS.tar* -C /home/${DEFAULT_USER}/
         echo "chown solutions to ${DEFAULT_USER}"
         chown -R ${DEFAULT_USER}:users /home/${DEFAULT_USER}/LF*
-        if [[ -f /tmp/solutions.patch ]]
+        if [[ -f /user/local/share/solutions.patch ]]
         then
           echo "trying to patch solutions"
-          patch -d /home/${DEFAULT_USER} -p0 < /tmp/solutions.patch
+          patch -d /home/${DEFAULT_USER} -p0 < /usr/local/share/solutions.patch
         fi
       else
         echo "SOLUTIONS_URL invalid or username password part missing"
@@ -62,9 +66,110 @@ write_files:
       set softtabstop=2
       set shiftwidth=2
       set softtabstop=2
+  - path: /etc/sysctl.d/90-kubernetes.conf
+    permissions: "0644"
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+  - path: /etc/modules-load.d/containerd.conf
+    permissions: "0644"
+    content: |
+      overlay
+      br_netfilter
+  - path: /usr/local/bin/install-k8s.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/bash
+
+      # Add repo for Kubernetes
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+
+      # Install the Kubernetes software, and lock the version
+      apt update
+      apt -y install kubelet=${K8S_VERSION}-00 kubeadm=${K8S_VERSION}-00 kubectl=${K8S_VERSION}-00
+      apt-mark hold kubelet kubeadm kubectl
+
+      # Ensure Kubelet is running
+      systemctl enable --now kubelet
+
+      # Add Helm to make our life easier
+      wget https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz
+      tar -xf helm-${HELM_VERSION}-linux-amd64.tar.gz
+      mv linux-amd64/helm /usr/local/bin/
+
+      # Install the containerd software
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+      add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      apt update
+      apt install containerd.io -y
+
+      # Configure containerd and restart
+      mkdir -p /etc/containerd
+      containerd config default | sed -e 's/SystemdCgroup = false/SystemdCgroup = true/g' > /etc/containerd/config.toml
+      sudo cat << EOF >> /etc/containerd/config.toml
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."*"]
+      endpoint = ["http://${REGISTRY_HOST}:5000"]
+      EOF
+
+      mkdir -p /etc/containers/registries.conf.d
+      cat << EOF > /etc/containers/registries.conf.d/registry.conf
+      [[registry]]
+      location = "${REGISTRY_HOST}:5000"
+      insecure = true
+      EOF
+
+      sudo systemctl restart containerd
+      sudo systemctl enable containerd
+
+      # Install and configure crictl
+      wget https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
+      tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz
+      mv crictl /usr/local/bin
+      # Set the endpoints to avoid the deprecation error
+      crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock \
+                    --set image-endpoint=unix:///run/containerd/containerd.sock
+
+      %{ if IS_CP }
+      # Install podman
+      curl -fsSL -o podman-linux-amd64.tar.gz https://github.com/mgoltzsche/podman-static/releases/download/${PODMAN_VERSION}/podman-linux-amd64.tar.gz
+      tar -xf podman-linux-amd64.tar.gz
+      cp -r podman-linux-amd64/usr podman-linux-amd64/etc /
+      rm -r podman-linux-amd64 podman-linux-amd64.tar.gz
+
+      # Configure CP node
+      kubeadm init --pod-network-cidr=192.168.0.0/16 --token=${JOIN_TOKEN}
+
+      # Configure the non-root user to use kubectl
+      mkdir -p /home/${DEFAULT_USER}/.kube
+      cp -f /etc/kubernetes/admin.conf /home/${DEFAULT_USER}/.kube/config
+      chown -R ${DEFAULT_USER}:${DEFAULT_USER} /home/${DEFAULT_USER}/.kube
+      kubectl completion bash > /etc/bash_completion.d/kubectl
+
+      # Install pod networking
+      kubectl apply --kubeconfig=/etc/kubernetes/admin.conf \
+              -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/calico.yaml
+
+      # Use all nodes for workloads
+      kubectl taint node --all node-role.kubernetes.io/control-plane-
+      %{ else }
+
+      # Configure worker node
+      kubeadm join ${CP_NODE}:6443 --token=${JOIN_TOKEN} --discovery-token-unsafe-skip-ca-verification
+      %{ endif }
 
 runcmd:
-  - /tmp/download_solutions.sh
+  - swapoff -a
+  - modprobe overlay
+  - modprobe br_netfilter
+  - sysctl --system
+  # Disable the annoying motd
+  - sed -i s/ENABLED=1/ENABLED=0/g /etc/default/motd-news
+  - chmod -x /etc/update-motd.d/80-livepatch
+  - chmod -x /etc/update-motd.d/10-help-text
+  - /usr/local/bin/download_solutions.sh
+  - /usr/local/bin/install-k8s.sh
 
 power_state:
   mode: reboot
