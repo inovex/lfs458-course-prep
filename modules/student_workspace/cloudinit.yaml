@@ -147,12 +147,12 @@ write_files:
       chown -R ${DEFAULT_USER}:${DEFAULT_USER} /home/${DEFAULT_USER}/.kube
       kubectl completion bash > /etc/bash_completion.d/kubectl
 
-      # Use all nodes for workloads
-      kubectl taint node --all node-role.kubernetes.io/control-plane-
-
       # Install pod networking
       kubectl apply --kubeconfig=/etc/kubernetes/admin.conf \
               -f https://raw.githubusercontent.com/projectcalico/calico/${CALICO_VERSION}/manifests/calico.yaml
+
+      # Use all nodes for workloads
+      kubectl taint node --all node-role.kubernetes.io/control-plane-
       %{ else }
 
       # Configure worker node
