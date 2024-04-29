@@ -3,7 +3,7 @@ data "openstack_networking_network_v2" "public" {
 }
 
 data "openstack_images_image_v2" "ubuntu" {
-  name        = "ubuntu-20.04-x86_64"
+  name        = var.ubuntu_image
   most_recent = true
   visibility  = "public"
 }

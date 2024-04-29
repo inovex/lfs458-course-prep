@@ -35,8 +35,8 @@ module "student_workspace" {
   sec_groups      = [module.network.secgroup_name]
   solutions_url   = var.solutions_url
   solutions_patch = fileexists("${path.module}/solutions.patch") ? filebase64("${path.module}/solutions.patch") : ""
-
-  depends_on = [ module.network ]
+  ubuntu_image    = var.ubuntu_image
+  depends_on      = [module.network]
 }
 
 module "wetty_server" {
@@ -49,6 +49,7 @@ module "wetty_server" {
   trainer       = var.trainer
   sec_groups    = [module.network.secgroup_name]
   instances     = module.student_workspace.instance_info
+  ubuntu_image  = var.ubuntu_image
   dns_domain    = var.dns_domain
   trainer_email = var.wetty_config.trainer_email
 }
