@@ -1,4 +1,6 @@
 terraform.tfvars
+training.tfvars
+*.tfplan
 keys
 terraform.tfstate
 terraform.tfstate.backup
@@ -18,3 +20,4 @@ mail/mail_template_en.txt
 mail/mail_info.yaml
 passwords
 solutions.patch
+clouds.yaml

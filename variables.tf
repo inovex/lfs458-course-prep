@@ -60,3 +60,8 @@ variable "solutions_patch" {
   type        = string
   default     = ""
 }
+
+variable "ubuntu_image" {
+  type    = string
+  default = "ubuntu-20.04-x86_64"
+}
