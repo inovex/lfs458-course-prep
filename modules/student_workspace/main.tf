@@ -1,5 +1,18 @@
 locals {
-  student_instances = toset([for i in setproduct(var.students, var.instances) : format("%s-%s", i[0], i[1])])
+  student_instances = {for pair in setproduct(var.students, var.instances):format("%s-%s", pair[0], pair[1]) => pair}
+  join_token = "${random_password.join_token_1.result}.${random_password.join_token_2.result}"
+}
+
+resource "random_password" "join_token_1" {
+  length           = 6
+  special          = false
+  upper            = false
+}
+
+resource "random_password" "join_token_2" {
+  length           = 16
+  special          = false
+  upper            = false
 }
 
 resource "tls_private_key" "ssh_key" {
@@ -19,25 +32,33 @@ resource "local_file" "private_key_pem" {
 }
 
 // We iterate over the product of students * instances e.g.
-// -> student0-master, student0-node and so on.
-// We use for_each here because count would destroy machines if we change the number of instances
+// -> student0-cp, student0-worker and so on.
 resource "openstack_compute_instance_v2" "instance" {
   for_each        = local.student_instances
-  name            = each.value
+  name            = each.key
   flavor_name     = var.machine_type
   security_groups = var.sec_groups
   user_data = templatefile(
     "${path.module}/cloudinit.yaml",
     {
       DEFAULT_USER    = "student"
-      SSH_PUB_KEY     = trimspace(tls_private_key.ssh_key[split("-", each.value)[0]].public_key_openssh)
+      SSH_PUB_KEY     = trimspace(tls_private_key.ssh_key[each.value[0]].public_key_openssh)
       SOLUTIONS_URL   = var.solutions_url
       SOLUTIONS_PATCH = var.solutions_patch
+      K8S_VERSION     = "1.26.1"
+      CALICO_VERSION  = "v3.25.0"
+      HELM_VERSION    = "v3.12.0"
+      CRI_VERSION     = "v1.26.0"
+      PODMAN_VERSION  = "v4.6.1"
+      CP_NODE         = "${each.value[0]}-cp"
+      REGISTRY_HOST   = "registry-${var.course_type}-${var.trainer}"
+      IS_CP           = each.value[1] == "cp"
+      JOIN_TOKEN      = local.join_token
     }
   )
 
   tags = [
-    split("-", each.value)[0],
+    each.value[0],
     var.course_type,
     format("trainer-%s", var.trainer)
   ]
@@ -56,7 +77,6 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 
   lifecycle {
-    create_before_destroy = true
     // Ignore newer images during a training session
     ignore_changes = [
       block_device,
@@ -67,9 +87,9 @@ resource "openstack_compute_instance_v2" "instance" {
 resource "openstack_networking_floatingip_v2" "instance" {
   for_each    = local.student_instances
   pool        = data.openstack_networking_network_v2.public.name
-  description = each.value
+  description = each.key
   tags = [
-    split("-", each.value)[0],
+    each.value[0],
     var.course_type,
     format("trainer-%s", var.trainer)
   ]
@@ -77,8 +97,8 @@ resource "openstack_networking_floatingip_v2" "instance" {
 
 resource "openstack_compute_floatingip_associate_v2" "instance" {
   for_each    = local.student_instances
-  floating_ip = openstack_networking_floatingip_v2.instance[each.value].address
-  instance_id = openstack_compute_instance_v2.instance[each.value].id
+  floating_ip = openstack_networking_floatingip_v2.instance[each.key].address
+  instance_id = openstack_compute_instance_v2.instance[each.key].id
 }
 
 resource "local_file" "public_ips" {
